@@ -25,23 +25,21 @@ router.post('/provision', auth, async (req, res) => {
         const node = await AnchorNode.findOne({ nodeId, status: 'Online' });
         if (!node) return res.status(404).json({ message: 'Node not online or available.' });
 
-        // 1. Create the Workload Task
+        // 1. Create the Workload Task with requirements
         const task = new Task({
             userId: req.user.id,
-            nodeId: node.nodeId,
-            name: `Marketplace-Workload-${taskType}`,
+            name: `Marketplace-Distributed-${taskType}`,
             type: taskType || 'AI_Training',
-            status: 'Processing',
-            payload: { marketplace: true, rentedAt: new Date() }
+            payload: { total_range: 5000000, complexity: 'High' },
+            requirements: requirements || { parallelNodes: 1 },
+            status: 'Processing'
         });
-
-        const savedTask = await task.save();
 
         // 2. Verified Allocation on Blockchain
         const contract = await blockchain.createAllocationContract(
             req.user.id,
             node.userId,
-            requirements || node.specs,
+            task.requirements,
             0.50 // Base rental price in ANC
         );
 
@@ -50,10 +48,24 @@ router.post('/provision', auth, async (req, res) => {
         node.status = 'Busy';
         await node.save();
 
-        // 3. Inform Orchestrator/Agent
-        await orchestrator.dispatchTask(savedTask, req.io);
+        const savedTask = await task.save();
 
-        res.status(201).json({ task: savedTask, contractId: contract.id });
+        // 3. Inform Orchestrator/Agent (Parallel vs Single)
+        let success = false;
+        if (savedTask.requirements.parallelNodes > 1) {
+            success = await orchestrator.dispatchParallelTask(savedTask, req.io);
+        } else {
+            savedTask.nodeId = node.nodeId;
+            await savedTask.save();
+            success = await orchestrator.dispatchTask(savedTask, req.io);
+        }
+
+        res.status(201).json({
+            success: true,
+            task: savedTask,
+            contract,
+            distributed: savedTask.requirements.parallelNodes > 1
+        });
 
     } catch (err) {
         res.status(500).json({ message: err.message });

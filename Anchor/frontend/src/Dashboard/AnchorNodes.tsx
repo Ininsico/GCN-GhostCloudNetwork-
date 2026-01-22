@@ -18,6 +18,7 @@ import {
     Package
 } from 'lucide-react';
 import axios from 'axios';
+import ScriptRunner from './ScriptRunner';
 
 const AnchorNodes: React.FC = () => {
     const [copied, setCopied] = useState(false);
@@ -97,19 +98,72 @@ const AnchorNodes: React.FC = () => {
                 });
             }, 3000);
 
-            // Agent logic: Listen for tasks
-            agentSocket.on('new_task', (task) => {
-                console.log(`[AGENT ${newNodeId}] Received new task:`, task);
-                // Simulate task processing
-                setTimeout(async () => {
+            // REAL DISTRIBUTED WORKLOAD ENGINE: Prime Number Sieve/Search
+            agentSocket.on('new_task', async (task) => {
+                console.log(`[AGENT ${newNodeId}] Ingress Task:`, task);
+                const { range_start, range_end } = task.payload;
+
+                // 1. Perform actual computation (finding primes in the given chunk)
+                const start = performance.now();
+                const primes: number[] = [];
+
+                // Real CPU intensive loop
+                for (let i = range_start; i < range_end; i++) {
+                    let isPrime = true;
+                    if (i < 2) continue;
+                    for (let j = 2; j <= Math.sqrt(i); j++) {
+                        if (i % j === 0) {
+                            isPrime = false;
+                            break;
+                        }
+                    }
+                    if (isPrime) primes.push(i);
+                }
+                const duration = (performance.now() - start) / 1000;
+
+                console.log(`[COMPUTE_READY] Chunk resolved. Found ${primes.length} primes in ${duration.toFixed(2)}s`);
+
+                // 2. Report actual results back to the aggregator
+                try {
                     const token = localStorage.getItem('token');
                     await axios.patch(`http://localhost:5000/api/tasks/${task.taskId}/status`, {
                         status: 'Completed',
-                        result: { accuracy: 0.98, logs: 'Simulation complete.' }
+                        subTaskId: task.subTaskId, // Use subTaskId for parallel aggregation
+                        result: {
+                            primes_count: primes.length,
+                            execution_time: duration,
+                            hardware: 'Web_Agent_X1',
+                            sample: primes.slice(0, 5)
+                        }
                     }, {
                         headers: { 'Authorization': `Bearer ${token}` }
                     });
-                }, 5000);
+                } catch (err) {
+                    console.error('Failed to report verified result');
+                }
+            });
+
+            agentSocket.on('script_deploy', async (payload) => {
+                console.log(`[SIM_REX] Executing Script: ${payload.name}`);
+                const start = performance.now();
+                try {
+                    const runner = new Function('console', payload.sourceCode);
+                    const logs: string[] = [];
+                    const mockConsole = { log: (...args: any[]) => logs.push(args.join(' ')) };
+                    runner(mockConsole);
+                    const duration = (performance.now() - start) / 1000;
+                    const token = localStorage.getItem('token');
+                    await axios.patch(`http://localhost:5000/api/tasks/${payload.taskId}/status`, {
+                        status: 'Completed',
+                        result: { stdout: logs.join('\n'), duration, hardware: 'Simulated_Browser' }
+                    }, { headers: { 'Authorization': `Bearer ${token}` } });
+                } catch (err: any) {
+                    const token = localStorage.getItem('token');
+                    await axios.patch(`http://localhost:5000/api/tasks/${payload.taskId}/status`, {
+                        status: 'Failed',
+                        result: { stderr: err.message }
+                    }, { headers: { 'Authorization': `Bearer ${token}` } });
+                }
             });
 
         } catch (err) {
@@ -163,9 +217,8 @@ const AnchorNodes: React.FC = () => {
                                 <span className="text-blue-400 text-[10px] uppercase font-bold px-2 py-0.5 bg-blue-400/10 rounded">Recommended</span>
                             </div>
                             <p className="text-gray-300 break-all leading-relaxed">
-                                <span className="text-[#39ff14]">$</span> docker run -d --name anchor-agent \<br />
-                                &nbsp;&nbsp;-e API_KEY=anch_live_x829... \<br />
-                                &nbsp;&nbsp;ghcr.io/anchor/agent:latest
+                                <span className="text-[#39ff14]">$</span> node src/agent.js http://localhost:5000 \<br />
+                                &nbsp;&nbsp;--key=anch_live_x829...
                             </p>
                             <button
                                 onClick={copyToClipboard}
@@ -355,6 +408,8 @@ const AnchorNodes: React.FC = () => {
                     </div>
                 </div>
             </div>
+
+            <ScriptRunner nodeId="" />
         </div>
     );
 };

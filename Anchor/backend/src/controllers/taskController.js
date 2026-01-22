@@ -23,9 +23,16 @@ exports.createTask = async (req, res) => {
             status: 'Pending'
         });
 
-        // Trigger orchestration for parallel or single node dispatch
+        // Trigger orchestration for parallel, script deployment, or single node dispatch
         let success = false;
-        if (task.requirements.parallelNodes > 1) {
+        if (task.type === 'Script_Deployment') {
+            const optimalNode = await orchestrator.selectOptimalNode(task.requirements || { minRam: '1GB' });
+            if (optimalNode) {
+                task.nodeId = optimalNode.nodeId;
+                await task.save();
+                success = await orchestrator.deployCustomScript(task._id, optimalNode.nodeId, req.io);
+            }
+        } else if (task.requirements.parallelNodes > 1) {
             success = await orchestrator.dispatchParallelTask(task, req.io);
         } else {
             const optimalNode = await orchestrator.selectOptimalNode(task.requirements);
