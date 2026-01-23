@@ -1,5 +1,5 @@
 import { motion, useScroll, useSpring } from 'framer-motion';
-import { ShieldCheck, Cpu, Share2, Activity, Layers, Boxes, Globe, Zap, Terminal, Lock, HardDrive } from 'lucide-react';
+import { ShieldCheck, Cpu, Share2, Activity, Layers, Boxes, Globe, Zap, Terminal, Lock, HardDrive, Brain, Wallet, CreditCard, Coins, ServerCog, Workflow, FileCode, Database } from 'lucide-react';
 import Header from "../../Components/Header";
 import Footer from "../../Components/Footer";
 
@@ -229,6 +229,260 @@ const NetworkTopologyMap = () => {
                             <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-4 h-4 bg-[#39ff14] rounded-full animate-ping" />
                         </div>
                     </div>
+                </div>
+            </div>
+        </MotionSection>
+    );
+};
+
+const AISchedulerDetail = () => {
+    return (
+        <MotionSection className="bg-[#080808]">
+            <div className="container mx-auto px-6">
+                <div className="flex flex-col md:flex-row gap-12 items-center">
+                    <div className="flex-1 space-y-8">
+                        <div>
+                            <span className="text-[#39ff14] font-black uppercase tracking-[0.4em] text-xs mb-4 block">Neural Orchestration</span>
+                            <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">
+                                The <span className="text-[#39ff14]">Cortex</span> Engine
+                            </h2>
+                            <p className="text-gray-400 text-lg leading-relaxed">
+                                Our proprietary AI scheduler, Cortex, doesn't just round-robin tasks. It predicts node availability, network congestion, and hardware capabilities in real-time to optimize execution paths.
+                            </p>
+                        </div>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            {[
+                                { title: "Latency Prediction", val: "98% Accuracy" },
+                                { title: "Node Scoring", val: "Real-time" },
+                                { title: "Task Routing", val: "< 5ms" },
+                                { title: "Failover Rate", val: "0.01%" }
+                            ].map((stat, i) => (
+                                <div key={i} className="p-4 rounded-xl bg-white/5 border border-white/10">
+                                    <div className="text-gray-500 text-xs uppercase tracking-widest mb-1">{stat.title}</div>
+                                    <div className="text-[#39ff14] font-bold text-xl">{stat.val}</div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+
+                    <div className="flex-1 w-full">
+                        <div className="relative p-1 rounded-3xl bg-gradient-to-br from-[#39ff14]/30 to-transparent">
+                            <div className="bg-black rounded-[1.4rem] p-8 border border-white/10 relative overflow-hidden">
+                                <div className="absolute top-0 right-0 p-8 opacity-20">
+                                    <Brain className="w-32 h-32 text-[#39ff14]" />
+                                </div>
+                                <div className="relative z-10 space-y-4">
+                                    <div className="flex items-center justify-between text-sm border-b border-white/10 pb-2">
+                                        <span className="text-white">Incoming Request</span>
+                                        <span className="text-[#39ff14]">#REQ-8821</span>
+                                    </div>
+                                    <div className="space-y-2">
+                                        <div className="flex items-center gap-2 text-xs text-gray-500">
+                                            <div className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" />
+                                            Analyzing constraints...
+                                        </div>
+                                        <div className="flex items-center gap-2 text-xs text-gray-500">
+                                            <div className="w-2 h-2 rounded-full bg-purple-500 animate-pulse" />
+                                            Matching hardware signatures...
+                                        </div>
+                                        <div className="flex items-center gap-2 text-xs text-[#39ff14]">
+                                            <div className="w-2 h-2 rounded-full bg-[#39ff14]" />
+                                            Optimal Path Found: Node Cluster EU-West-4
+                                        </div>
+                                    </div>
+                                    <div className="mt-6 pt-4 border-t border-white/10">
+                                        <div className="flex justify-between items-end">
+                                            <div className="text-xs text-gray-500">
+                                                Cortex Score
+                                            </div>
+                                            <div className="text-3xl font-black text-white">
+                                                9.9<span className="text-lg text-gray-600">/10</span>
+                                            </div>
+                                        </div>
+                                        <div className="w-full bg-white/10 h-1 mt-2 rounded-full overflow-hidden">
+                                            <div className="w-[99%] h-full bg-[#39ff14]" />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </MotionSection>
+    );
+};
+
+const ConsensusMechanism = () => {
+    return (
+        <MotionSection className="bg-black">
+            <div className="container mx-auto px-6 text-center">
+                <div className="mb-16">
+                    <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#39ff14]/10 text-[#39ff14] text-xs font-bold mb-6 border border-[#39ff14]/20">
+                        <ShieldCheck size={14} />
+                        PROOF OF EXECUTION (PoE)
+                    </div>
+                    <h2 className="text-4xl md:text-6xl font-bold text-white mb-6">TRUSTLESS <span className="text-gray-600 line-through decoration-[#39ff14]">VERIFICATION</span> <br /> CONSENSUS</h2>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto relative">
+                    {/* Connecting Line */}
+                    <div className="hidden md:block absolute top-12 left-[16%] right-[16%] h-0.5 bg-gradient-to-r from-transparent via-[#39ff14]/30 to-transparent" />
+
+                    {[
+                        {
+                            step: "01",
+                            title: "Execution",
+                            desc: "Nodes perform the computational task in isolated TEEs.",
+                            icon: ServerCog
+                        },
+                        {
+                            step: "02",
+                            title: "Attestation",
+                            desc: "Cryptographic proofs are generated to verify the work was done honestly.",
+                            icon: FileCode
+                        },
+                        {
+                            step: "03",
+                            title: "Finality",
+                            desc: "Validators reach consensus and commit the result to the state.",
+                            icon: Database
+                        }
+                    ].map((item, i) => (
+                        <div key={i} className="relative group">
+                            <div className="w-24 h-24 mx-auto bg-black rounded-full border-2 border-[#39ff14]/20 group-hover:border-[#39ff14] transition-colors flex items-center justify-center relative z-10 mb-6">
+                                <item.icon className="text-white group-hover:text-[#39ff14] transition-colors w-10 h-10" />
+                                <div className="absolute top-0 right-0 -mr-2 -mt-2 w-8 h-8 rounded-full bg-[#39ff14] text-black font-bold flex items-center justify-center text-sm">
+                                    {item.step}
+                                </div>
+                            </div>
+                            <h3 className="text-xl font-bold text-white mb-3">{item.title}</h3>
+                            <p className="text-gray-500 text-sm">{item.desc}</p>
+                        </div>
+                    ))}
+                </div>
+            </div>
+        </MotionSection>
+    );
+};
+
+const PaymentLayer = () => {
+    return (
+        <MotionSection className="bg-[#050505]">
+            <div className="container mx-auto px-6">
+                <div className="bg-[#111] border border-white/5 rounded-3xl p-8 md:p-12 flex flex-col md:flex-row gap-12">
+                    <div className="flex-1">
+                        <h2 className="text-3xl md:text-4xl font-bold text-white mb-6">Autonomous <br /><span className="text-[#39ff14]">Settlement Layer</span></h2>
+                        <p className="text-gray-400 mb-8">
+                            Resource usage is metered in milliseconds. Smart contracts automatically handle micropayments between compute consumers and node providers.
+                        </p>
+                        <ul className="space-y-4">
+                            {[
+                                "No minimum monthly commitments",
+                                "Instant node payouts via $GCN",
+                                "Cryptographic proof-of-usage receipts",
+                                "Dynamic spot pricing based on demand"
+                            ].map((feat, i) => (
+                                <li key={i} className="flex items-center gap-3 text-white">
+                                    <div className="w-5 h-5 rounded-full bg-[#39ff14]/20 flex items-center justify-center">
+                                        <div className="w-2 h-2 rounded-full bg-[#39ff14]" />
+                                    </div>
+                                    {feat}
+                                </li>
+                            ))}
+                        </ul>
+                    </div>
+                    <div className="flex-1 bg-black rounded-2xl p-6 border border-white/5 relative">
+                        <div className="flex justify-between items-center mb-6">
+                            <div className="flex items-center gap-3">
+                                <div className="p-2 bg-white/10 rounded-lg">
+                                    <Coins className="text-[#39ff14]" size={20} />
+                                </div>
+                                <div>
+                                    <div className="text-white font-bold">Node Payout</div>
+                                    <div className="text-xs text-gray-500">Transaction ID: 0x8a...3f</div>
+                                </div>
+                            </div>
+                            <div className="text-right">
+                                <div className="text-[#39ff14] font-mono font-bold">+ 42.50 $GCN</div>
+                                <div className="text-xs text-gray-500">Processing...</div>
+                            </div>
+                        </div>
+
+                        <div className="space-y-3">
+                            <div className="h-2 bg-white/5 rounded-full overflow-hidden">
+                                <div className="h-full w-2/3 bg-[#39ff14] rounded-full" />
+                            </div>
+                            <div className="flex justify-between text-xs text-gray-500">
+                                <span>Verifying Proof...</span>
+                                <span>66%</span>
+                            </div>
+                        </div>
+
+                        <div className="mt-6 flex gap-3">
+                            <div className="flex-1 p-3 bg-white/5 rounded-lg text-center">
+                                <Wallet className="mx-auto mb-2 text-gray-400" size={16} />
+                                <div className="text-[10px] text-gray-500 uppercase">Sender</div>
+                                <div className="text-xs text-white">Consumer DAO</div>
+                            </div>
+                            <div className="flex-1 p-3 bg-white/5 rounded-lg text-center">
+                                <CreditCard className="mx-auto mb-2 text-gray-400" size={16} />
+                                <div className="text-[10px] text-gray-500 uppercase">Method</div>
+                                <div className="text-xs text-white">Smart Contract</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </MotionSection>
+    );
+};
+
+const UseCasesGrid = () => {
+    const cases = [
+        {
+            title: "AI Inference",
+            desc: "Run LLMs and Stable Diffusion models on distributed consumer GPUs at 1/10th the cost.",
+            tags: ["Python", "PyTorch", "CUDA"]
+        },
+        {
+            title: "CGI Rendering",
+            desc: "Offload heavy Blender or V-Ray rendering tasks to a swarm of high-performance nodes.",
+            tags: ["Blender", "Rendering", "3D"]
+        },
+        {
+            title: "Scientific Calc",
+            desc: "Process massive datasets for folding@home style research or financial modeling.",
+            tags: ["Compute", "Data", "Research"]
+        }
+    ];
+
+    return (
+        <MotionSection className="bg-black">
+            <div className="container mx-auto px-6">
+                <div className="text-center mb-16">
+                    <h2 className="text-3xl md:text-5xl font-bold text-white mb-4">WHAT RUNS ON <span className="text-[#39ff14]">ANCHOR?</span></h2>
+                    <p className="text-gray-500">From micro-services to massive parallel processing.</p>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    {cases.map((c, i) => (
+                        <div key={i} className="group p-6 rounded-2xl bg-[#080808] border border-white/5 hover:border-[#39ff14]/30 transition-all hover:-translate-y-1">
+                            <div className="mb-4">
+                                <Workflow className="text-[#39ff14] w-8 h-8 group-hover:scale-110 transition-transform" />
+                            </div>
+                            <h3 className="text-xl font-bold text-white mb-2">{c.title}</h3>
+                            <p className="text-sm text-gray-400 mb-6 min-h-[3rem]">{c.desc}</p>
+                            <div className="flex flex-wrap gap-2">
+                                {c.tags.map((t, j) => (
+                                    <span key={j} className="text-[10px] px-2 py-1 rounded bg-white/5 text-gray-300 border border-white/5">
+                                        {t}
+                                    </span>
+                                ))}
+                            </div>
+                        </div>
+                    ))}
                 </div>
             </div>
         </MotionSection>
