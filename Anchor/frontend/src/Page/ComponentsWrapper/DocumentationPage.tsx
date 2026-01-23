@@ -25,6 +25,8 @@ import {
     Activity
 } from 'lucide-react';
 import Header from "../../Components/Header";
+import Footer from "../../Components/Footer";
+import { useNavigate } from 'react-router-dom';
 
 const CodeBlock = ({ code, language = "bash" }: { code: string, language?: string }) => {
     const [copied, setCopied] = useState(false);
@@ -74,7 +76,8 @@ const Section = ({ id, title, children }: { id: string, title: string, children:
     </motion.section>
 );
 
-const DocumentationPage = ({ onNavigate }: { onNavigate: (view: any) => void }) => {
+const DocumentationPage = () => {
+    const navigate = useNavigate();
     const [activeSection, setActiveSection] = useState('introduction');
     const [searchQuery, setSearchQuery] = useState('');
 
@@ -163,7 +166,7 @@ const DocumentationPage = ({ onNavigate }: { onNavigate: (view: any) => void }) 
 
     return (
         <div className="bg-black text-white min-h-screen selection:bg-[#39ff14] selection:text-black">
-            <Header onNavigate={onNavigate} />
+            <Header />
 
             <div className="max-w-7xl mx-auto px-6 pt-32 pb-20">
                 <div className="flex flex-col lg:flex-row gap-12">
@@ -220,7 +223,7 @@ const DocumentationPage = ({ onNavigate }: { onNavigate: (view: any) => void }) 
                                 Documentation V2.4
                             </div>
                             <h1 className="text-5xl md:text-6xl font-black text-white tracking-tighter mb-6">
-                                BEYOND THE <span className="text-[#39ff14] italic">GHOST</span>
+                                BEYOND THE <span className="text-[#39ff14] italic">ANCHOR</span>
                             </h1>
                             <p className="text-xl text-gray-400 leading-relaxed">
                                 Welcome to the technical heart of Anchor. Here we document the protocols, architectures, and APIs that power the world's most secure decentralized cloud network.
@@ -233,7 +236,7 @@ const DocumentationPage = ({ onNavigate }: { onNavigate: (view: any) => void }) 
                                 Anchor is a decentralized, peer-to-peer cloud network designed for high-performance compute and absolute data sovereignty. Unlike traditional cloud providers that rely on centralized data centers, Anchor leverages a global grid of independent nodes.
                             </p>
                             <p>
-                                Every interaction on the network is governed by the <span className="text-white font-bold">Ghost Protocol</span>, a proprietary Layer 2 communication stack that ensures Zero-Knowledge operations and near-zero latency.
+                                Every interaction on the network is governed by the <span className="text-white font-bold">Anchor Protocol</span>, a proprietary Layer 2 communication stack that ensures Zero-Knowledge operations and near-zero latency.
                             </p>
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-8">
                                 <div className="p-6 rounded-2xl bg-white/5 border border-white/10 hover:border-[#39ff14]/30 transition-all">
@@ -260,7 +263,7 @@ const DocumentationPage = ({ onNavigate }: { onNavigate: (view: any) => void }) 
                                 <li>Download the <span className="text-[#39ff14]">Anchor CLI</span> for your operating system.</li>
                                 <li>Initialize your local environment with <code className="bg-white/10 px-2 py-0.5 rounded text-[#39ff14]">anchor init</code>.</li>
                                 <li>Authenticate using your Patron or Developer keys.</li>
-                                <li>Deploy your first workload to the Ghost Cloud.</li>
+                                <li>Deploy your first workload to the Anchor Cloud.</li>
                             </ol>
                             <CodeBlock code={`# Install via curl
 curl -fsSL https://get.anchor.net | sh
@@ -269,8 +272,8 @@ curl -fsSL https://get.anchor.net | sh
 anchor --version
 
 # Initialize project
-anchor init my-ghost-app
-cd my-ghost-app
+anchor init my-anchor-app
+cd my-anchor-app
 
 # Authenticate
 anchor auth login`} />
@@ -370,7 +373,7 @@ monitoring:
                                 <div className="p-6 rounded-2xl bg-gradient-to-r from-blue-500/10 to-transparent border border-blue-500/20">
                                     <h4 className="text-blue-400 font-bold mb-3 flex items-center gap-2">
                                         <Layers size={18} />
-                                        Layer 1: Ghost Mesh Network
+                                        Layer 1: Anchor Mesh Network
                                     </h4>
                                     <p className="text-sm">
                                         The foundational P2P network layer handling node discovery, routing, and communication. Uses UDP hole-punching and NAT traversal for direct peer connections.
@@ -400,9 +403,9 @@ monitoring:
                         </Section>
 
                         {/* GHOST EDGE PROTOCOL */}
-                        <Section id="ghost-edge" title="Ghost Edge Protocol">
+                        <Section id="anchor-edge" title="Anchor Edge Protocol">
                             <p>
-                                The Ghost Edge Protocol (GEP) is the backbone of our communication. It operates by abstracting the TCP/IP stack into a proprietary "Encrypted Frame" system that provides:
+                                The Anchor Edge Protocol (AEP) is the backbone of our communication. It operates by abstracting the TCP/IP stack into a proprietary "Encrypted Frame" system that provides:
                             </p>
                             <ul className="space-y-3 mt-4">
                                 <li className="flex gap-3">
@@ -426,8 +429,8 @@ monitoring:
                                 </p>
                             </div>
 
-                            <CodeBlock code={`// Example: Establishing a Ghost Edge connection
-import { GhostEdge } from '@anchor/ghost-sdk';
+                            <CodeBlock code={`// Example: Establishing a Anchor Edge connection
+import { AnchorEdge } from '@anchor/anchor-sdk';
 
 const edge = new GhostEdge({
   encryption: 'aes-256-gcm',
@@ -448,7 +451,7 @@ await edge.send({
 
                         {/* NODE TYPES */}
                         <Section id="node-types" title="Node Classification">
-                            <p>The Ghost Cloud Network categorizes nodes into three tiers based on hardware capabilities and reliability:</p>
+                            <p>The Anchor Cloud Network categorizes nodes into three tiers based on hardware capabilities and reliability:</p>
 
                             <div className="space-y-6 mt-6">
                                 <div className="p-6 rounded-2xl bg-white/5 border border-white/10">
@@ -504,7 +507,7 @@ await edge.send({
                                         <div className="w-10 h-10 rounded-lg bg-purple-500/20 flex items-center justify-center">
                                             <Database className="text-purple-400" size={20} />
                                         </div>
-                                        <h4 className="text-xl font-bold text-white">Ghost Nodes</h4>
+                                        <h4 className="text-xl font-bold text-white">Anchor Nodes</h4>
                                     </div>
                                     <p className="text-sm mb-4">Bare-metal clusters with GPU acceleration. Used for AI workloads and large-scale processing.</p>
                                     <div className="grid grid-cols-3 gap-4 text-xs">
@@ -594,7 +597,7 @@ const signature = await anchor.crypto.sign(transaction, keyPair.privateKey);`} l
                         {/* CONSENSUS */}
                         <Section id="consensus" title="Proof of Work Consensus">
                             <p>
-                                The Ghost Cloud Network uses a modified Proof of Work (PoW) consensus mechanism called <strong className="text-white">Proof of Execution (PoE)</strong>. Unlike traditional blockchain PoW, PoE validates that compute tasks were actually performed correctly.
+                                The Anchor Cloud Network uses a modified Proof of Work (PoW) consensus mechanism called <strong className="text-white">Proof of Execution (PoE)</strong>. Unlike traditional blockchain PoW, PoE validates that compute tasks were actually performed correctly.
                             </p>
 
                             <h4 className="text-white font-bold mt-6 mb-3">How PoE Works</h4>
@@ -759,7 +762,7 @@ anchor network nodes --region eu-west`} />
                                         <span className="px-2 py-1 rounded bg-green-500/20 text-green-400 text-xs font-bold">POST</span>
                                         <code className="text-[#39ff14]">/deploy</code>
                                     </div>
-                                    <p className="text-sm mb-3">Deploy a new application to the Ghost Network</p>
+                                    <p className="text-sm mb-3">Deploy a new application to the Anchor Network</p>
                                     <CodeBlock code={`{
   "image": "nginx:latest",
   "config": {
@@ -808,7 +811,7 @@ anchor network nodes --region eu-west`} />
 
                         {/* SDK USAGE */}
                         <Section id="sdk-usage" title="SDK Usage">
-                            <p>The Anchor SDK provides a high-level interface for interacting with the Ghost Network:</p>
+                            <p>The Anchor SDK provides a high-level interface for interacting with the Anchor Network:</p>
 
                             <h4 className="text-white font-bold mt-6 mb-3">Installation</h4>
                             <CodeBlock code={`npm install @anchor/ghost-sdk`} />
@@ -901,7 +904,7 @@ compute:
   auto_scale: true
   
 network:
-  mode: "ghost-edge"
+  mode: "anchor-edge"
   load_balancer: true
   
 security:
@@ -957,7 +960,7 @@ curl https://your-app.ghost.anchor.net/health`} />
                                     </ul>
                                 </div>
                                 <div className="p-4 rounded-xl bg-white/5 border border-white/10">
-                                    <h5 className="text-white font-bold mb-2">Ghost Node</h5>
+                                    <h5 className="text-white font-bold mb-2">Anchor Node</h5>
                                     <ul className="text-sm space-y-1">
                                         <li>• 32+ CPU cores</li>
                                         <li>• 64GB+ RAM</li>
@@ -1086,7 +1089,7 @@ anchor logs dep_abc123 --export logs.json --format json`} />
                                 Back to Top
                             </button>
                             <button
-                                onClick={() => onNavigate('landing')}
+                                onClick={() => navigate('/')}
                                 className="text-[#39ff14] hover:underline flex items-center gap-2 transition-all font-bold"
                             >
                                 Return to Home
@@ -1136,26 +1139,7 @@ anchor logs dep_abc123 --export logs.json --format json`} />
                 </div>
             </div>
 
-            <footer className="py-20 border-t border-white/5 bg-[#050505]">
-                <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-8">
-                    <div className="flex items-center gap-4">
-                        <div className="w-8 h-8 rounded bg-[#39ff14]/10 flex items-center justify-center">
-                            <Code2 size={16} className="text-[#39ff14]" />
-                        </div>
-                        <span className="font-black text-xl tracking-tighter">ANCHOR.DOCS</span>
-                    </div>
-
-                    <div className="flex gap-8 text-xs font-bold text-gray-500 uppercase tracking-widest">
-                        <button onClick={() => onNavigate('landing')} className="hover:text-[#39ff14] transition-colors">Home</button>
-                        <button onClick={() => onNavigate('features')} className="hover:text-[#39ff14] transition-colors">Features</button>
-                        <button onClick={() => onNavigate('network')} className="hover:text-[#39ff14] transition-colors">Network</button>
-                        <a href="#" className="hover:text-[#39ff14] transition-colors">GitHub</a>
-                        <a href="#" className="hover:text-[#39ff14] transition-colors">Discord</a>
-                    </div>
-
-                    <p className="text-[10px] text-gray-600 font-mono">© 2026 GHOST CLOUD NETWORK. ALL RIGHTS RESERVED.</p>
-                </div>
-            </footer>
+            <Footer />
         </div>
     );
 };

@@ -1,6 +1,7 @@
 import { motion, useScroll, useSpring } from 'framer-motion';
 import { Heart, Zap, Coffee, Crown, Rocket, Users, Github, Layout } from 'lucide-react';
 import Header from "../../Components/Header";
+import Footer from "../../Components/Footer";
 
 const MotionSection = ({ children, className = "" }: any) => {
     return (
@@ -30,7 +31,7 @@ const PatronHero = () => (
                 </div>
                 <h1 className="text-6xl md:text-9xl font-black text-white mb-6 tracking-tighter leading-none">
                     FUEL THE <br />
-                    <span className="text-[#39ff14] italic">GHOST MESH</span>
+                    <span className="text-[#39ff14] italic">ANCHOR MESH</span>
                 </h1>
                 <p className="max-w-3xl mx-auto text-gray-400 text-lg md:text-xl leading-relaxed">
                     Anchor is 100% open source. We don't sell your data or charge for basic access.
@@ -81,7 +82,7 @@ const PatronTiers = () => {
                             title: "Vanguard",
                             price: "$100",
                             icon: Crown,
-                            desc: "Architects of the ghost mesh. Directly funding global infrastructure scaling.",
+                            desc: "Architects of the anchor mesh. Directly funding global infrastructure scaling.",
                             features: ["All Guardian Perks", "Direct Developer Access", "Exclusive Vanguard Merch", "Your Logo on Homepage"],
                             color: "border-purple-500/50"
                         }
@@ -131,7 +132,7 @@ const OpenRoadmap = () => {
                         <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
                             {[
                                 { status: "Current", title: "Node Core V2", desc: "Refactoring the consensus engine for 10x faster node-to-node handshakes.", progress: 85 },
-                                { status: "Up Next", title: "Global Mesh Map", desc: "Interactive dashboard to visualize the real-time health of the Ghost Mesh.", progress: 30 },
+                                { status: "Up Next", title: "Global Mesh Map", desc: "Interactive dashboard to visualize the real-time health of the Anchor Mesh.", progress: 30 },
                                 { status: "Future", title: "Satellite Nodes", desc: "Extending the network to space for 100% global coverage without borders.", progress: 5 }
                             ].map((item, i) => (
                                 <div key={i} className="space-y-6">
@@ -231,7 +232,7 @@ const FAQ = () => {
     );
 };
 
-const PatronPage = ({ onNavigate }: { onNavigate: (view: any) => void }) => {
+const PatronPage = () => {
     const { scrollYProgress } = useScroll();
     const scaleX = useSpring(scrollYProgress, {
         stiffness: 100,
@@ -245,7 +246,7 @@ const PatronPage = ({ onNavigate }: { onNavigate: (view: any) => void }) => {
                 className="fixed top-0 left-0 right-0 h-1 bg-[#39ff14] z-[100] origin-left"
                 style={{ scaleX }}
             />
-            <Header onNavigate={onNavigate} />
+            <Header />
 
             <main>
                 <PatronHero />
@@ -255,19 +256,7 @@ const PatronPage = ({ onNavigate }: { onNavigate: (view: any) => void }) => {
                 <FAQ />
             </main>
 
-            <footer className="py-24 border-t border-white/5 text-center bg-[#050505]">
-                <div className="container mx-auto px-6">
-                    <h3 className="text-3xl font-black mb-8">ANCHOR.</h3>
-                    <div className="flex justify-center gap-12 text-gray-500 uppercase tracking-widest text-xs font-bold mb-12">
-                        <button onClick={() => onNavigate('landing')} className="hover:text-[#39ff14] transition-colors">Hero</button>
-                        <button onClick={() => onNavigate('features')} className="hover:text-[#39ff14] transition-colors">Features</button>
-                        <button onClick={() => onNavigate('how-it-works')} className="hover:text-[#39ff14] transition-colors">How It Works</button>
-                        <button onClick={() => onNavigate('network')} className="hover:text-[#39ff14] transition-colors">Network</button>
-                        <button onClick={() => onNavigate('patron')} className="hover:text-[#39ff14] transition-colors underline underline-offset-8 decoration-[#39ff14]">Patron</button>
-                    </div>
-                    <p className="text-gray-700 text-xs font-medium tracking-[0.4em]">© 2026 GHOST CLOUD NETWORK PROTOCOL. TECHNICAL DOCS V2.4</p>
-                </div>
-            </footer>
+            <Footer />
         </div>
     );
 };

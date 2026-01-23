@@ -1,6 +1,7 @@
 import { motion, useScroll, useSpring } from 'framer-motion';
 import { ShieldCheck, Cpu, Share2, Activity, Layers, Boxes, Globe, Zap, Terminal, Lock, HardDrive } from 'lucide-react';
 import Header from "../../Components/Header";
+import Footer from "../../Components/Footer";
 
 const MotionSection = ({ children, className = "" }: any) => {
     return (
@@ -33,11 +34,11 @@ const HowHero = () => (
                 </div>
                 <h1 className="text-6xl md:text-9xl font-black text-white mb-6 tracking-tighter leading-none">
                     ENGINEERED <br />
-                    <span className="text-[#39ff14] italic underline decoration-white/20 underline-offset-8">GHOSTS</span>
+                    <span className="text-[#39ff14] italic underline decoration-white/20 underline-offset-8">ANCHORS</span>
                 </h1>
                 <p className="max-w-3xl mx-auto text-gray-400 text-lg md:text-xl leading-relaxed">
                     A decentralized orchestration layer that turns idle hardware into a global supercomputer.
-                    Experience the Ghost Protocol workflow.
+                    Experience the Anchor Protocol workflow.
                 </p>
             </motion.div>
         </div>
@@ -112,7 +113,7 @@ const ArchitectureVisualizer = () => {
 
                 <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
                     {[
-                        { icon: Terminal, title: "Ghost CLI", color: "bg-blue-500/10 border-blue-500/20 text-blue-400", desc: "Command line interface for managing clusters and nodes." },
+                        { icon: Terminal, title: "Anchor CLI", color: "bg-blue-500/10 border-blue-500/20 text-blue-400", desc: "Command line interface for managing clusters and nodes." },
                         { icon: Boxes, title: "Orchestrator", color: "bg-purple-500/10 border-purple-500/20 text-purple-400", desc: "AI-driven task distribution and load balancing engine." },
                         { icon: Lock, title: "TEE Enclaves", color: "bg-[#39ff14]/10 border-[#39ff14]/20 text-[#39ff14]", desc: "Hardware-isolated execution zones for secure computation." },
                         { icon: Globe, title: "Edge Relay", color: "bg-orange-500/10 border-orange-500/20 text-orange-400", desc: "Global distribution network for low-latency delivery." }
@@ -234,7 +235,7 @@ const NetworkTopologyMap = () => {
     );
 };
 
-const HowItWorksPage = ({ onNavigate }: { onNavigate: (view: any) => void }) => {
+const HowItWorksPage = () => {
     const { scrollYProgress } = useScroll();
     const scaleX = useSpring(scrollYProgress, {
         stiffness: 100,
@@ -248,7 +249,7 @@ const HowItWorksPage = ({ onNavigate }: { onNavigate: (view: any) => void }) => 
                 className="fixed top-0 left-0 right-0 h-1 bg-[#39ff14] z-[100] origin-left"
                 style={{ scaleX }}
             />
-            <Header onNavigate={onNavigate} />
+            <Header />
 
             <main>
                 <HowHero />
@@ -257,7 +258,7 @@ const HowItWorksPage = ({ onNavigate }: { onNavigate: (view: any) => void }) => 
                     number={1}
                     icon={Cpu}
                     title="Node Onboarding"
-                    desc="Any device with computing power can join the Ghost Cloud Network. Whether it's a high-end server or an idle workstation, our lightweight agent transforms it into a secure network node."
+                    desc="Any device with computing power can join the Anchor Cloud Network. Whether it's a high-end server or an idle workstation, our lightweight agent transforms it into a secure network node."
                     features={["Automated Hardware Scouting", "Resource Capability Analysis", "Secure Identity Minting", "Uptime Monitoring"]}
                 />
 
@@ -266,7 +267,7 @@ const HowItWorksPage = ({ onNavigate }: { onNavigate: (view: any) => void }) => 
                     icon={Share2}
                     reverse
                     title="Workload Fragmentation"
-                    desc="When a task is deployed, the Ghost Controller shards the data and execution script into hundreds of encrypted fragments. No single node ever sees the full picture."
+                    desc="When a task is deployed, the Anchor Controller shards the data and execution script into hundreds of encrypted fragments. No single node ever sees the full picture."
                     features={["AES-512 Sharding", "Data Entropy Injection", "Redundancy Encoding", "Asynchronous Delivery"]}
                 />
 
@@ -302,19 +303,7 @@ const HowItWorksPage = ({ onNavigate }: { onNavigate: (view: any) => void }) => 
                 />
             </main>
 
-            <footer className="py-24 border-t border-white/5 text-center bg-[#050505]">
-                <div className="container mx-auto px-6">
-                    <h3 className="text-3xl font-black mb-8">ANCHOR.</h3>
-                    <div className="flex justify-center gap-12 text-gray-500 uppercase tracking-widest text-xs font-bold mb-12">
-                        <button onClick={() => onNavigate('landing')} className="hover:text-[#39ff14] transition-colors">Hero</button>
-                        <button onClick={() => onNavigate('features')} className="hover:text-[#39ff14] transition-colors">Features</button>
-                        <button onClick={() => onNavigate('how-it-works')} className="hover:text-[#39ff14] transition-colors underline underline-offset-8 decoration-[#39ff14]">How It Works</button>
-                        <button onClick={() => onNavigate('network')} className="hover:text-[#39ff14] transition-colors">Network</button>
-                        <button onClick={() => onNavigate('patron')} className="hover:text-[#39ff14] transition-colors">Patron</button>
-                    </div>
-                    <p className="text-gray-700 text-xs font-medium tracking-[0.4em]">© 2026 GHOST CLOUD NETWORK PROTOCOL. TECHNICAL DOCS V2.4</p>
-                </div>
-            </footer>
+            <Footer />
         </div>
     );
 };

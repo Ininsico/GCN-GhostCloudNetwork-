@@ -27,7 +27,7 @@ const Network: React.FC = () => {
                                 GLOBAL <span className="text-[#39ff14]">NETWORK</span> STATUS
                             </h2>
                             <p className="text-gray-400 text-lg mb-10 leading-relaxed">
-                                The Anchor dashboard provides real-time visibility into the Ghost Cloud Network.
+                                The Anchor dashboard provides real-time visibility into the Anchor Cloud Network.
                                 Monitor traffic, latency, and node health across 1,200+ global locations with millisecond precision.
                             </p>
 

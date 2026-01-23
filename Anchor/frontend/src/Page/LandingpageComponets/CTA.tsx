@@ -24,7 +24,7 @@ const CTA: React.FC = () => {
                     </h2>
                     <p className="text-gray-400 text-lg md:text-xl mb-12 max-w-2xl mx-auto leading-relaxed">
                         Stop overpaying for centralized cloud providers. Start building on the
-                        Ghost Cloud Network today and experience true digital sovereignty.
+                        Anchor Cloud Network today and experience true digital sovereignty.
                     </p>
 
                     <div className="flex flex-col sm:flex-row items-center justify-center gap-6">

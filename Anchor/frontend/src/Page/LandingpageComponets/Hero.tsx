@@ -38,7 +38,7 @@ const HeroSection: React.FC = () => {
               <span className="relative inline-flex rounded-full h-2 w-2 bg-[#39ff14]"></span>
             </span>
             <span className="text-gray-300 text-xs font-medium tracking-[0.2em] uppercase">
-              Ghost Cloud Protocol v2.4.0
+              Anchor Cloud Protocol v2.4.0
             </span>
           </motion.div>
 
@@ -63,7 +63,7 @@ const HeroSection: React.FC = () => {
             className="max-w-2xl mx-auto text-gray-400 text-lg md:text-2xl mb-12 leading-relaxed"
           >
             The world's most powerful decentralized computing network.
-            Deploy, scale, and secure your infrastructure on the Ghost Cloud.
+            Deploy, scale, and secure your infrastructure on the Anchor Cloud.
           </motion.p>
 
           {/* Action Buttons */}

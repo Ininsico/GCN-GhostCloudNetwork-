@@ -3,12 +3,13 @@ import { motion } from 'framer-motion';
 import { Terminal, Mail, Lock, Loader2, Shield, Eye, EyeOff, UserPlus, CheckCircle2 } from 'lucide-react';
 import axios from 'axios';
 
+import { Link } from 'react-router-dom';
+
 interface RegisterProps {
     onSuccess: (data: any) => void;
-    onSwitch: () => void;
 }
 
-const Register: React.FC<RegisterProps> = ({ onSuccess, onSwitch }) => {
+const Register: React.FC<RegisterProps> = ({ onSuccess }) => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
@@ -88,7 +89,7 @@ const Register: React.FC<RegisterProps> = ({ onSuccess, onSwitch }) => {
                         <h1 className="text-4xl font-black text-white tracking-tighter mb-2">
                             NODE <span className="text-[#39ff14]">REGISTRY</span>
                         </h1>
-                        <p className="text-gray-500 text-sm font-medium text-center">Join the Ghost Cloud Network</p>
+                        <p className="text-gray-500 text-sm font-medium text-center">Join the Anchor Network</p>
 
                         {/* Status Badge */}
                         <div className="mt-4 px-4 py-2 rounded-full bg-[#39ff14]/10 border border-[#39ff14]/20 flex items-center gap-2">
@@ -123,7 +124,7 @@ const Register: React.FC<RegisterProps> = ({ onSuccess, onSwitch }) => {
                                     value={email}
                                     onChange={(e) => setEmail(e.target.value)}
                                     className="relative w-full bg-black/60 border border-white/10 rounded-2xl py-4 px-5 text-white text-sm outline-none focus:border-[#39ff14]/50 transition-all placeholder:text-gray-600"
-                                    placeholder="operator@ghost.network"
+                                    placeholder="operator@anchor.network"
                                     required
                                 />
                             </div>
@@ -166,8 +167,8 @@ const Register: React.FC<RegisterProps> = ({ onSuccess, onSwitch }) => {
                                             />
                                         </div>
                                         <span className={`text-xs font-bold ${passwordStrength.strength === 1 ? 'text-red-500' :
-                                                passwordStrength.strength === 2 ? 'text-yellow-500' :
-                                                    'text-[#39ff14]'
+                                            passwordStrength.strength === 2 ? 'text-yellow-500' :
+                                                'text-[#39ff14]'
                                             }`}>
                                             {passwordStrength.label}
                                         </span>
@@ -235,12 +236,12 @@ const Register: React.FC<RegisterProps> = ({ onSuccess, onSwitch }) => {
                     <div className="mt-8 pt-6 border-t border-white/5">
                         <p className="text-gray-500 text-sm text-center">
                             Already registered?{' '}
-                            <button
-                                onClick={onSwitch}
+                            <Link
+                                to="/login"
                                 className="text-[#39ff14] font-bold hover:underline underline-offset-4 transition-all"
                             >
                                 Access Console
-                            </button>
+                            </Link>
                         </p>
                     </div>
                 </div>
@@ -251,7 +252,7 @@ const Register: React.FC<RegisterProps> = ({ onSuccess, onSwitch }) => {
                         🔒 Protected by <span className="text-[#39ff14]">Zero-Knowledge</span> encryption
                     </p>
                     <p className="text-gray-700 text-[10px]">
-                        By registering, you agree to the Ghost Protocol Terms
+                        By registering, you agree to the Anchor Protocol Terms
                     </p>
                 </div>
             </motion.div>

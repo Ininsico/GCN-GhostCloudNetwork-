@@ -1,6 +1,7 @@
 import { motion, useScroll, useSpring } from 'framer-motion';
 import { Globe, Server, Activity, Shield, Zap, Database, Radio, Cpu, Share2 } from 'lucide-react';
 import Header from "../../Components/Header";
+import Footer from "../../Components/Footer";
 
 const MotionSection = ({ children, className = "" }: any) => {
     return (
@@ -43,7 +44,7 @@ const NetworkHero = () => (
                     Live Network Status: Nominal
                 </div>
                 <h1 className="text-7xl md:text-[10rem] font-black text-white mb-6 tracking-tightest leading-[0.85]">
-                    THE <span className="text-[#39ff14] italic">GHOST</span> <br /> MESH
+                    THE <span className="text-[#39ff14] italic">ANCHOR</span> <br /> MESH
                 </h1>
                 <p className="max-w-3xl mx-auto text-gray-500 text-xl md:text-2xl leading-relaxed mt-8 font-light">
                     A planetary-scale decentralized infrastructure. 1.2 million edges, 0 centralized points of failure.
@@ -135,7 +136,7 @@ const NodeTiers = () => {
         <MotionSection>
             <div className="container mx-auto px-6 text-center mb-16">
                 <h2 className="text-4xl md:text-6xl font-bold text-white mb-6 tracking-tight">NODE <span className="text-[#39ff14]">HIERARCHY</span></h2>
-                <p className="text-gray-500 max-w-2xl mx-auto">Not all ghosts are created equal. Our network categorizes nodes based on hardware telemetry and reliability history.</p>
+                <p className="text-gray-500 max-w-2xl mx-auto">Not all anchors are created equal. Our network categorizes nodes based on hardware telemetry and reliability history.</p>
             </div>
 
             <div className="container mx-auto px-6 grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -154,7 +155,7 @@ const NodeTiers = () => {
                         featured: true
                     },
                     {
-                        title: "Ghost",
+                        title: "Anchor",
                         icon: Database,
                         desc: "Bare-metal clusters and backbone providers. Used for heavy AI processing and large-scale data retrieval.",
                         stats: ["28k Nodes", "10Gbps+ Avg", "GPU Clusters"]
@@ -208,7 +209,7 @@ const IncentivesLayer = () => {
                             <span className="text-[#39ff14] font-black uppercase tracking-[0.4em] text-xs mb-6 block">Tokenomics</span>
                             <h2 className="text-5xl md:text-6xl font-bold text-white mb-8 tracking-tight">ECONOMY OF <br /> <span className="text-[#39ff14]">SHADOWS</span></h2>
                             <p className="text-gray-400 text-lg leading-relaxed mb-10">
-                                The Ghost Cloud Network is powered by the $GCN utility token. Providers earn rewards by leasing their hardware to the mesh, while users burn tokens to access planetary-scale compute.
+                                The Anchor Cloud Network is powered by the $GCN utility token. Providers earn rewards by leasing their hardware to the mesh, while users burn tokens to access planetary-scale compute.
                             </p>
                             <button className="px-8 py-4 rounded-2xl bg-white text-black font-black uppercase tracking-widest text-sm hover:bg-[#39ff14] transition-all hover:scale-105">
                                 View Whitepaper
@@ -231,7 +232,7 @@ const NetworkProtocols = () => {
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-1">
                     {[
-                        { title: "Ghost-P2P", desc: "Proprietary UDP-based transport protocol for NAT-bypassing node communication." },
+                        { title: "Anchor-P2P", desc: "Proprietary UDP-based transport protocol for NAT-bypassing node communication." },
                         { title: "Shadow-Query", desc: "Encrypted distributed hash table (DHT) for node discovery without central trackers." },
                         { title: "Anchor-Auth", desc: "Elliptic curve based zero-knowledge identity system for node authentication." },
                         { title: "Pulsar-Flow", desc: "AI load balancer that predicts node congestion and reroutes traffic in < 1ms." }
@@ -248,7 +249,7 @@ const NetworkProtocols = () => {
     );
 };
 
-const NetworkPage = ({ onNavigate }: { onNavigate: (view: any) => void }) => {
+const NetworkPage = () => {
     const { scrollYProgress } = useScroll();
     const scaleX = useSpring(scrollYProgress, {
         stiffness: 100,
@@ -262,7 +263,7 @@ const NetworkPage = ({ onNavigate }: { onNavigate: (view: any) => void }) => {
                 className="fixed top-0 left-0 right-0 h-1 bg-[#39ff14] z-[100] origin-left"
                 style={{ scaleX }}
             />
-            <Header onNavigate={onNavigate} />
+            <Header />
 
             <main>
                 <NetworkHero />
@@ -272,20 +273,7 @@ const NetworkPage = ({ onNavigate }: { onNavigate: (view: any) => void }) => {
                 <NetworkProtocols />
             </main>
 
-            <footer className="py-24 border-t border-white/5 text-center bg-[#050505]">
-                <div className="container mx-auto px-6">
-                    <h3 className="text-3xl font-black mb-8">ANCHOR.</h3>
-                    <div className="flex justify-center gap-12 text-gray-500 uppercase tracking-widest text-xs font-bold mb-12">
-                        <button onClick={() => onNavigate('landing')} className="hover:text-[#39ff14] transition-colors">Hero</button>
-                        <button onClick={() => onNavigate('features')} className="hover:text-[#39ff14] transition-colors">Features</button>
-                        <button onClick={() => onNavigate('how-it-works')} className="hover:text-[#39ff14] transition-colors">How It Works</button>
-                        <button onClick={() => onNavigate('network')} className="hover:text-[#39ff14] transition-colors underline underline-offset-8 decoration-[#39ff14]">Network</button>
-                        <button onClick={() => onNavigate('patron')} className="hover:text-[#39ff14] transition-colors">Patron</button>
-                        <button onClick={() => onNavigate('documentation')} className="hover:text-[#39ff14] transition-colors">Docs</button>
-                    </div>
-                    <p className="text-gray-700 text-xs font-medium tracking-[0.4em]">© 2026 GHOST CLOUD NETWORK PROTOCOL. TECHNICAL DOCS V2.4</p>
-                </div>
-            </footer>
+            <Footer />
         </div>
     );
 };

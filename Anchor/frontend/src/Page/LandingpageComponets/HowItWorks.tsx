@@ -41,7 +41,7 @@ const HowItWorks: React.FC = () => {
                         HOW IT <span className="text-[#39ff14]">WORKS</span>
                     </h2>
                     <p className="text-gray-500 max-w-2xl mx-auto text-lg">
-                        Deploying on the Ghost Cloud Network is simpler than traditional cloud providers.
+                        Deploying on the Anchor Cloud Network is simpler than traditional cloud providers.
                     </p>
                 </div>
 
@@ -50,7 +50,7 @@ const HowItWorks: React.FC = () => {
                         number={1}
                         icon={Layers}
                         title="Containerize Your App"
-                        desc="Package your application into a standard Docker container or use one of our pre-configured Ghost Templates for Node.js, Python, or Go."
+                        desc="Package your application into a standard Docker container or use one of our pre-configured Anchor Templates for Node.js, Python, or Go."
                         delay={0.1}
                     />
                     <Step

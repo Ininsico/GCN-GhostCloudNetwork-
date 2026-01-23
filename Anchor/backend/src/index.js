@@ -21,7 +21,8 @@ const io = new Server(httpServer, {
 });
 
 const security = require('./utils/securityEngine');
-const blockchain = require('./services/blockchainService');
+const security = require('./utils/securityEngine');
+const ledger = require('./services/ledgerService'); // REAL CREDIT LEDGER
 
 // GLOBAL MIDDLEWARE
 app.use(cors());
@@ -50,6 +51,7 @@ app.use('/api/nodes', nodeRoutes);
 app.use('/api/compute', computeRoutes);
 app.use('/api/tasks', taskRoutes);
 app.use('/api/dag', dagRoutes);
+app.use('/api/ledger', require('./routes/ledgerRoutes')); // REAL CREDIT SYSTEM
 
 // WEBSOCKET LOGIC FOR AGENTS (Real-time Resource Sharing)
 io.on('connection', async (socket) => {

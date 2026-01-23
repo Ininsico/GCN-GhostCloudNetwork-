@@ -3,12 +3,13 @@ import { motion } from 'framer-motion';
 import { Terminal, Mail, Lock, ArrowRight, Loader2, Shield, Eye, EyeOff } from 'lucide-react';
 import axios from 'axios';
 
+import { Link } from 'react-router-dom';
+
 interface LoginProps {
     onSuccess: (data: any) => void;
-    onSwitch: () => void;
 }
 
-const Login: React.FC<LoginProps> = ({ onSuccess, onSwitch }) => {
+const Login: React.FC<LoginProps> = ({ onSuccess }) => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [loading, setLoading] = useState(false);
@@ -69,7 +70,7 @@ const Login: React.FC<LoginProps> = ({ onSuccess, onSwitch }) => {
                         </motion.div>
 
                         <h1 className="text-4xl font-black text-white tracking-tighter mb-2">
-                            GHOST <span className="text-[#39ff14]">ACCESS</span>
+                            ANCHOR <span className="text-[#39ff14]">ACCESS</span>
                         </h1>
                         <p className="text-gray-500 text-sm font-medium">Enter the decentralized network</p>
 
@@ -106,7 +107,7 @@ const Login: React.FC<LoginProps> = ({ onSuccess, onSwitch }) => {
                                     value={email}
                                     onChange={(e) => setEmail(e.target.value)}
                                     className="relative w-full bg-black/60 border border-white/10 rounded-2xl py-4 px-5 text-white text-sm outline-none focus:border-[#39ff14]/50 transition-all placeholder:text-gray-600"
-                                    placeholder="operator@ghost.network"
+                                    placeholder="operator@anchor.network"
                                     required
                                 />
                             </div>
@@ -162,12 +163,12 @@ const Login: React.FC<LoginProps> = ({ onSuccess, onSwitch }) => {
                     <div className="mt-8 pt-6 border-t border-white/5">
                         <p className="text-gray-500 text-sm text-center">
                             New to the network?{' '}
-                            <button
-                                onClick={onSwitch}
+                            <Link
+                                to="/register"
                                 className="text-[#39ff14] font-bold hover:underline underline-offset-4 transition-all"
                             >
                                 Register Node
-                            </button>
+                            </Link>
                         </p>
                     </div>
                 </div>

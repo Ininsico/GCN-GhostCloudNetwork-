@@ -34,7 +34,7 @@ const Features: React.FC = () => {
                         ENGINEERED FOR <span className="text-[#39ff14] italic">PERFORMANCE</span>
                     </motion.h2>
                     <p className="text-gray-500 max-w-2xl mx-auto text-lg">
-                        Built on top of the Ghost Cloud Protocol, Anchor provides a suite of tools
+                        Built on top of the Anchor Cloud Protocol, Anchor provides a suite of tools
                         designed for the next generation of decentralized applications.
                     </p>
                 </div>
