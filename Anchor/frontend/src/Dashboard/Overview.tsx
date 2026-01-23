@@ -105,33 +105,78 @@ const Overview: React.FC = () => {
                 <motion.div
                     initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
-                    className="lg:col-span-2 bg-white/5 border border-white/10 rounded-2xl p-8 h-[400px] relative overflow-hidden group"
+                    className="lg:col-span-2 space-y-6"
                 >
-                    <div className="flex justify-between items-center mb-6">
-                        <h2 className="text-xl font-bold text-white flex items-center gap-2">
-                            <TrendingUp className="text-[#39ff14] w-5 h-5" />
-                            Resource Allocation
-                        </h2>
-                        <div className="flex gap-2">
-                            {['24H', '7D', '30D'].map(t => (
-                                <button key={t} className="text-[10px] font-bold px-3 py-1 rounded bg-white/5 text-gray-400 hover:text-[#39ff14] transition-colors">
-                                    {t}
-                                </button>
+                    <div className="bg-white/5 border border-white/10 rounded-2xl p-8 h-[300px] relative overflow-hidden group">
+                        <div className="flex justify-between items-center mb-6">
+                            <h2 className="text-xl font-bold text-white flex items-center gap-2">
+                                <TrendingUp className="text-[#39ff14] w-5 h-5" />
+                                Resource Allocation
+                            </h2>
+                            <div className="flex gap-2">
+                                {['24H', '7D', '30D'].map(t => (
+                                    <button key={t} className="text-[10px] font-bold px-3 py-1 rounded bg-white/5 text-gray-400 hover:text-[#39ff14] transition-colors">
+                                        {t}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* Faked Chart Visualization */}
+                        <div className="absolute inset-x-0 bottom-0 top-24 p-8 flex items-end gap-1">
+                            {Array.from({ length: 40 }).map((_, i) => (
+                                <div
+                                    key={i}
+                                    className="flex-1 bg-[#39ff14]/20 hover:bg-[#39ff14] transition-all rounded-t-sm"
+                                    style={{ height: `${Math.random() * 80 + 20}%` }}
+                                />
                             ))}
                         </div>
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent pointer-events-none" />
                     </div>
 
-                    {/* Faked Chart Visualization */}
-                    <div className="absolute inset-x-0 bottom-0 top-24 p-8 flex items-end gap-1">
-                        {Array.from({ length: 40 }).map((_, i) => (
-                            <div
-                                key={i}
-                                className="flex-1 bg-[#39ff14]/20 hover:bg-[#39ff14] transition-all rounded-t-sm"
-                                style={{ height: `${Math.random() * 80 + 20}%` }}
-                            />
-                        ))}
+                    <div className="bg-stone-900 border border-white/10 rounded-3xl p-6">
+                        <div className="flex justify-between items-center mb-6 text-white">
+                            <h2 className="text-lg font-bold flex items-center gap-2">
+                                <Server size={18} className="text-[#39ff14]" />
+                                Active Ghost Workloads
+                            </h2>
+                            <span className="text-[10px] text-gray-500 font-bold uppercase tracking-widest px-2 py-1 bg-white/5 rounded">Live Tunnel Status</span>
+                        </div>
+
+                        <div className="space-y-4">
+                            {loading ? (
+                                <div className="text-gray-500 italic text-xs">Scanning network...</div>
+                            ) : (
+                                // This would ideally map over a 'clusters' state, adding a simple mock for now
+                                [1, 2].map((_, i) => (
+                                    <div key={i} className="flex items-center justify-between p-4 bg-black/40 border border-white/5 rounded-2xl group hover:border-[#39ff14]/30 transition-all">
+                                        <div className="flex items-center gap-4">
+                                            <div className="p-3 bg-white/5 rounded-xl text-gray-500 group-hover:text-[#39ff14] transition-colors relative">
+                                                <Zap size={18} />
+                                                <div className="absolute -top-1 -right-1 w-2 h-2 bg-[#39ff14] rounded-full animate-pulse" />
+                                            </div>
+                                            <div>
+                                                <div className="flex items-center gap-2">
+                                                    <h4 className="font-bold text-white text-sm">Ghost-Gaming-{i === 0 ? 'X9' : 'B2'}</h4>
+                                                    <span className="text-[8px] px-1.5 py-0.5 rounded bg-blue-500/20 text-blue-400 font-bold uppercase tracking-tighter">Native NGR</span>
+                                                </div>
+                                                <p className="text-[10px] text-gray-500 font-mono">
+                                                    Signal: <span className="text-[#39ff14]">2ms</span> • P2P Tunnel: <span className="text-white">Active</span>
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <button
+                                            onClick={() => alert("Connecting to Native Ghost Runtime via P2P Tunnel...")}
+                                            className="px-4 py-2 bg-[#39ff14]/10 text-[#39ff14] border border-[#39ff14]/30 rounded-lg text-[10px] font-bold uppercase tracking-tighter hover:bg-[#39ff14] hover:text-black transition-all"
+                                        >
+                                            OPEN STREAM
+                                        </button>
+                                    </div>
+                                ))
+                            )}
+                        </div>
                     </div>
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent pointer-events-none" />
                 </motion.div>
 
                 {/* Recent Events -> System Terminal */}

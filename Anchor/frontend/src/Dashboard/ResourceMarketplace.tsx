@@ -2,14 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import {
     Layers,
-    Search,
-    Filter,
     Cpu,
     Zap,
     Globe,
     ShieldCheck,
     Terminal,
-    Server,
     ChevronRight,
     Star,
     Activity,
@@ -142,6 +139,84 @@ const ResourceMarketplace: React.FC = () => {
                 <Layers size={400} className="absolute -right-20 -bottom-20 opacity-5 text-[#39ff14] -rotate-12 group-hover:rotate-0 transition-transform duration-1000" />
             </div>
 
+            {/* V-APP STORE / GAMING ENGINE */}
+            <div className="space-y-4">
+                <div className="flex items-center gap-3">
+                    <div className="p-2 bg-purple-500/10 rounded-xl text-purple-400">
+                        <Box size={20} />
+                    </div>
+                    <h2 className="text-xl font-bold text-white">Ghost Application Store</h2>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    {[
+                        {
+                            id: 'gaming-engine',
+                            name: 'Cloud Gaming Engine',
+                            desc: 'Full GPU Passthrough for AAA Gaming (Tekken 8, Cyberpunk).',
+                            image: 'Zap',
+                            color: 'text-orange-400',
+                            type: 'Gaming'
+                        },
+                        {
+                            id: 'ai-workspace',
+                            name: 'AI Model Workspace',
+                            desc: 'Pre-configured Jupyter + CUDA for deep learning.',
+                            image: 'Cpu',
+                            color: 'text-blue-400',
+                            type: 'AI_Training'
+                        },
+                        {
+                            id: 'render-farm',
+                            name: 'Octane Render Node',
+                            desc: 'High-speed 3D rendering for Blender/Cinema4D.',
+                            image: 'Layers',
+                            color: 'text-[#39ff14]',
+                            type: 'Experimental'
+                        }
+                    ].map(app => (
+                        <div key={app.id} className="bg-stone-900/50 border border-white/10 rounded-3xl p-6 hover:border-purple-500/50 transition-all group relative overflow-hidden">
+                            <div className="relative z-10">
+                                <div className={`p-4 rounded-2xl bg-black mb-4 w-fit border border-white/5 ${app.color}`}>
+                                    {app.image === 'Zap' ? <Zap size={24} /> : app.image === 'Cpu' ? <Cpu size={24} /> : <Layers size={24} />}
+                                </div>
+                                <h3 className="text-lg font-bold text-white mb-2">{app.name}</h3>
+                                <p className="text-xs text-gray-500 leading-relaxed mb-6">{app.desc}</p>
+
+                                <button
+                                    onClick={async () => {
+                                        const gpuNode = offers.find(o => o.metrics?.ramUsage < 80); // Find a live node
+                                        if (!gpuNode) return alert("No nodes available with requested RAM/GPU power.");
+
+                                        try {
+                                            const token = localStorage.getItem('token');
+                                            await axios.post('http://localhost:5000/api/clusters', {
+                                                name: `Ghost-${app.id}`,
+                                                provider: 'Self-Hosted',
+                                                region: gpuNode.region || 'Auto-Edge',
+                                                type: app.type,
+                                                requirements: { minRam: '8GB', gpuRequired: true, preferEdge: true }
+                                            }, {
+                                                headers: { 'Authorization': `Bearer ${token}` }
+                                            });
+                                            alert(`${app.name} deployment initiated on Node: ${gpuNode.nodeId}. Initializing secure video tunnel...`);
+                                        } catch (err: any) {
+                                            alert(err.response?.data?.message || "Deployment failed");
+                                        }
+                                    }}
+                                    className="w-full py-3 bg-white/5 hover:bg-white text-gray-400 hover:text-black rounded-xl font-bold text-[10px] uppercase tracking-widest transition-all"
+                                >
+                                    DEPLOY TO GHOST-NET
+                                </button>
+                            </div>
+                            <div className="absolute top-0 right-0 p-4 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <Star size={16} className="text-purple-500" />
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            </div>
+
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 {loading ? (
                     <div className="text-white">Scanning market...</div>
@@ -158,7 +233,7 @@ const ResourceMarketplace: React.FC = () => {
                         >
                             <div className="flex justify-between items-start mb-6">
                                 <div className={`p-3 rounded-2xl bg-black border border-white/5 text-[#39ff14] group-hover:border-[#39ff14]/30 transition-colors`}>
-                                    {offer.type.includes('GPU') ? <Zap size={24} /> : offer.type.includes('CPU') ? <Cpu size={24} /> : <Box size={24} />}
+                                    {offer.specs?.gpu ? <Zap size={24} /> : <Cpu size={24} />}
                                 </div>
                                 {offer.badge && (
                                     <span className="text-[8px] font-bold px-2 py-0.5 rounded bg-white/5 text-gray-400 group-hover:text-[#39ff14] uppercase tracking-widest border border-white/5">
@@ -169,18 +244,18 @@ const ResourceMarketplace: React.FC = () => {
 
 
                             <div className="flex-1 mb-6">
-                                <h3 className="text-xl font-bold text-white mb-1">{offer.type || 'Generic Node'}</h3>
+                                <h3 className="text-xl font-bold text-white mb-1">{offer.name || 'Distributed Node'}</h3>
                                 <p className="text-xs text-gray-500 font-medium line-clamp-1">{offer.specs?.cpu} • {offer.specs?.gpu || 'No GPU'}</p>
                             </div>
 
                             <div className="space-y-4 mb-8">
                                 <div className="flex justify-between items-center text-xs">
-                                    <span className="text-gray-500 flex items-center gap-1"><Globe size={12} /> {offer.region || 'Unknown'}</span>
-                                    <span className="text-[#39ff14] font-bold">{offer.latency || '20ms'}</span>
+                                    <span className="text-gray-500 flex items-center gap-1"><Globe size={12} /> {offer.location?.country || 'Global'}</span>
+                                    <span className="text-[#39ff14] font-bold">-{offer.metrics?.latency || 10}ms</span>
                                 </div>
                                 <div className="space-y-2">
                                     <div className="flex justify-between text-[10px]">
-                                        <span className="text-gray-500">Utilization</span>
+                                        <span className="text-gray-500">Live Hardware Usage</span>
                                         <span className="text-white">{offer.metrics?.cpuUsage || 0}%</span>
                                     </div>
                                     <div className="w-full bg-white/5 h-1.5 rounded-full overflow-hidden">
@@ -192,7 +267,7 @@ const ResourceMarketplace: React.FC = () => {
                             <div className="flex items-center justify-between pt-6 border-t border-white/5">
                                 <div>
                                     <p className="text-[10px] text-gray-500 font-bold uppercase">Rate</p>
-                                    <p className="text-lg font-bold text-white tracking-tight">{offer.price || '0.10 ANC/hr'}</p>
+                                    <p className="text-lg font-bold text-white tracking-tight">{offer.earnings ? 'PAID' : '0.12 ANC/hr'}</p>
                                 </div>
                                 <button
                                     onClick={() => handleProvision(offer.nodeId, false)}

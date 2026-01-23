@@ -32,6 +32,7 @@ console.log("Node RAM Access verified.");
             const res = await axios.post('http://localhost:5000/api/tasks', {
                 name: 'REX_Custom_Script',
                 type: 'Script_Deployment',
+                nodeId, // Target specific node if selected
                 payload: {
                     sourceCode,
                     dependencies: dependencies.split(',').map(d => d.trim()).filter(d => d),
@@ -71,7 +72,9 @@ console.log("Node RAM Access verified.");
                     </div>
                     <div>
                         <h3 className="text-white font-bold text-sm">Remote Execution Engine (REX)</h3>
-                        <p className="text-[10px] text-gray-500 uppercase tracking-widest font-bold">Hardware-Level Scripting</p>
+                        <p className="text-[10px] text-gray-500 uppercase tracking-widest font-bold">
+                            Targeting: <span className={nodeId ? "text-[#39ff14]" : "text-gray-600"}>{nodeId || 'Optimal Auto-Select'}</span>
+                        </p>
                     </div>
                 </div>
                 <button

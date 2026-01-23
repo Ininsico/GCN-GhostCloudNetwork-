@@ -1,75 +1,121 @@
-import React from 'react';
-import { ArrowRight, Shield, Zap, Globe, Cpu } from 'lucide-react';
+import React, { useRef } from 'react';
+import { motion, useScroll, useTransform } from 'framer-motion';
+import { ArrowRight, Terminal, Shield, Zap, Cpu } from 'lucide-react';
 
 const HeroSection: React.FC = () => {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const { scrollY } = useScroll();
+  const y1 = useTransform(scrollY, [0, 500], [0, 200]);
+
   return (
-    <section className="relative min-h-screen flex items-center justify-center pt-20 overflow-hidden bg-black">
-      {/* Background Effects */}
-      <div className="absolute inset-0 z-0">
-        <div className="absolute top-1/4 left-1/4 w-[500px] h-[500px] bg-[#39ff14]/10 rounded-full blur-[120px] animate-pulse"></div>
-        <div className="absolute bottom-1/4 right-1/4 w-[400px] h-[400px] bg-[#39ff14]/5 rounded-full blur-[100px]"></div>
-        <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 brightness-100 contrast-150"></div>
+    <section ref={containerRef} className="relative min-h-screen flex items-center justify-center pt-20 overflow-hidden bg-black selection:bg-[#39ff14] selection:text-black">
+      {/* Background Animated Elements */}
+      <div className="absolute inset-0 z-0 overflow-hidden">
+        <motion.div
+          style={{ y: y1 }}
+          className="absolute top-[-10%] left-[-10%] w-[60%] h-[60%] bg-[#39ff14]/10 rounded-full blur-[120px] mix-blend-screen"
+        />
+        <motion.div
+          style={{ y: useTransform(scrollY, [0, 500], [0, -100]) }}
+          className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-[#39ff14]/5 rounded-full blur-[100px] mix-blend-screen"
+        />
+
+        {/* Animated Grid */}
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:40px_40px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)]" />
       </div>
 
-      <div className="container mx-auto px-6 relative z-10 text-center">
-        {/* Badge */}
-        <div className="inline-flex items-center space-x-2 px-4 py-2 rounded-full bg-[#39ff14]/5 border border-[#39ff14]/20 mb-8 animate-fade-in">
-          <span className="relative flex h-2 w-2">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#39ff14] opacity-75"></span>
-            <span className="relative inline-flex rounded-full h-2 w-2 bg-[#39ff14]"></span>
-          </span>
-          <span className="text-[#39ff14] text-xs font-bold tracking-widest uppercase">
-            Ghost Cloud Network v2.0
-          </span>
-        </div>
+      <div className="container mx-auto px-6 relative z-10">
+        <div className="max-w-5xl mx-auto text-center">
+          {/* Version Badge */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            className="inline-flex items-center space-x-2 px-4 py-2 rounded-full bg-white/5 border border-white/10 mb-10 backdrop-blur-md"
+          >
+            <span className="flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#39ff14] opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-[#39ff14]"></span>
+            </span>
+            <span className="text-gray-300 text-xs font-medium tracking-[0.2em] uppercase">
+              Ghost Cloud Protocol v2.4.0
+            </span>
+          </motion.div>
 
-        {/* Heading */}
-        <h1 className="text-5xl md:text-8xl font-black text-white mb-8 tracking-tighter leading-[0.9]">
-          DECENTRALIZED <br />
-          <span className="text-[#39ff14] italic">INFRASTRUCTURE</span>
-        </h1>
+          {/* Main Title */}
+          <motion.h1
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.2 }}
+            className="text-6xl md:text-9xl font-bold text-white mb-8 tracking-tighter leading-none"
+          >
+            UNLEASH THE <br />
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#39ff14] via-[#32cd32] to-[#39ff14] animate-gradient-x italic">
+              ANONYMOUS CLOUD
+            </span>
+          </motion.h1>
 
-        {/* Description */}
-        <p className="max-w-2xl mx-auto text-gray-400 text-lg md:text-xl mb-12 leading-relaxed">
-          Anchor is the standard for secure, high-performance decentralized computing.
-          Deploy global-scale applications on the Ghost Cloud Network with zero latency.
-        </p>
+          {/* Subtitle */}
+          <motion.p
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.4 }}
+            className="max-w-2xl mx-auto text-gray-400 text-lg md:text-2xl mb-12 leading-relaxed"
+          >
+            The world's most powerful decentralized computing network.
+            Deploy, scale, and secure your infrastructure on the Ghost Cloud.
+          </motion.p>
 
-        {/* CTAs */}
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-6 mb-20">
-          <button className="group px-8 py-4 rounded-xl bg-[#39ff14] text-black font-black text-lg hover:shadow-[0_0_30px_rgba(57,255,20,0.5)] transition-all flex items-center space-x-3">
-            <span>DEPLOY NOW</span>
-            <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-          </button>
-          <button className="px-8 py-4 rounded-xl bg-white/5 border border-white/10 text-white font-bold text-lg hover:bg-white/10 transition-all backdrop-blur-md">
-            VIEW NETWORK STATS
-          </button>
-        </div>
+          {/* Action Buttons */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.6 }}
+            className="flex flex-col sm:flex-row items-center justify-center gap-6 mb-24"
+          >
+            <button className="group relative px-8 py-4 rounded-full bg-[#39ff14] text-black font-bold text-lg hover:scale-105 transition-all duration-300 overflow-hidden">
+              <div className="absolute inset-0 bg-white/20 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700" />
+              <div className="flex items-center space-x-3 relative z-10">
+                <span>Start Deploying</span>
+                <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+              </div>
+            </button>
+            <button className="px-8 py-4 rounded-full bg-white/5 border border-white/10 text-white font-bold text-lg hover:bg-white/10 transition-all backdrop-blur-md flex items-center space-x-3">
+              <Terminal className="w-5 h-5 text-[#39ff14]" />
+              <span>View Documentation</span>
+            </button>
+          </motion.div>
 
-        {/* Performance Metrics */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-8 max-w-4xl mx-auto border-t border-white/5 pt-12">
-          <div className="text-left">
-            <div className="text-[#39ff14] text-3xl font-black mb-1">99.99%</div>
-            <div className="text-gray-500 text-xs font-bold uppercase tracking-widest text-wrap">NETWORK UPTIME</div>
-          </div>
-          <div className="text-left border-l border-white/5 pl-4 md:pl-8">
-            <div className="text-[#39ff14] text-3xl font-black mb-1">12ms</div>
-            <div className="text-gray-500 text-xs font-bold uppercase tracking-widest text-wrap">AVG LATENCY</div>
-          </div>
-          <div className="text-left border-l border-white/5 pl-4 md:pl-8">
-            <div className="text-[#39ff14] text-3xl font-black mb-1">500+</div>
-            <div className="text-gray-500 text-xs font-bold uppercase tracking-widest text-wrap">ACTIVE NODES</div>
-          </div>
-          <div className="text-left border-l border-white/5 pl-4 md:pl-8">
-            <div className="text-[#39ff14] text-3xl font-black mb-1">0.001$</div>
-            <div className="text-gray-500 text-xs font-bold uppercase tracking-widest text-wrap">COST PER GB</div>
-          </div>
+          {/* Stats Bar */}
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 1, delay: 0.8 }}
+            className="grid grid-cols-2 lg:grid-cols-4 gap-8 py-10 border-t border-white/10"
+          >
+            {[
+              { label: 'Uptime', value: '99.99%', icon: Shield },
+              { label: 'Latency', value: ' < 5ms', icon: Zap },
+              { label: 'Nodes', value: '1.2k+', icon: Cpu },
+              { label: 'Saved', value: '80%', icon: ArrowRight },
+            ].map((stat, i) => (
+              <div key={i} className="flex flex-col items-center lg:items-start">
+                <div className="flex items-center space-x-2 mb-1">
+                  <stat.icon className="w-4 h-4 text-[#39ff14]" />
+                  <span className="text-[#39ff14] text-2xl md:text-3xl font-bold tracking-tight">{stat.value}</span>
+                </div>
+                <span className="text-gray-500 text-xs font-bold uppercase tracking-widest">{stat.label}</span>
+              </div>
+            ))}
+          </motion.div>
         </div>
       </div>
 
-      {/* Grid Pattern */}
-      <div className="absolute bottom-0 left-0 right-0 h-64 bg-gradient-to-t from-black to-transparent z-10"></div>
-      <div className="absolute bottom-0 left-0 right-0 h-px bg-[#39ff14]/20 z-10 w-full shadow-[0_0_20px_rgba(57,255,20,0.2)]"></div>
+      {/* Decorative Orbs */}
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full pointer-events-none">
+        <div className="absolute top-1/4 left-10 w-2 h-2 bg-[#39ff14] rounded-full animate-ping opacity-20" />
+        <div className="absolute bottom-1/3 right-20 w-3 h-3 bg-[#39ff14] rounded-full animate-ping opacity-10" />
+      </div>
     </section>
   );
 };

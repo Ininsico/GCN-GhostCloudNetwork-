@@ -21,6 +21,9 @@ const AnchorNodeSchema = new mongoose.Schema({
         cpuUsage: { type: Number, default: 0 },
         gpuUsage: { type: Number, default: 0 },
         ramUsage: { type: Number, default: 0 },
+        ramTotal: { type: Number, default: 0 },
+        ramUsed: { type: Number, default: 0 },
+        temp: { type: Number, default: 0 },
         uptime: { type: Number, default: 0 }
     },
     earnings: { type: Number, default: 0 },

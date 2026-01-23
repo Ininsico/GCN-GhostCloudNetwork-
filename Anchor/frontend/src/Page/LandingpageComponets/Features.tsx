@@ -1,70 +1,109 @@
 import React from 'react';
-import { Shield, Zap, Globe, Cpu, Lock, Cloud } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { Shield, Zap, Globe, Cpu, Lock, Share2, Activity, Database } from 'lucide-react';
+
+const FeatureCard = ({ title, desc, icon: Icon, delay, className = "" }: any) => (
+    <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, delay }}
+        viewport={{ once: true }}
+        className={`group p-8 rounded-3xl bg-white/[0.03] border border-white/10 hover:border-[#39ff14]/30 transition-all duration-500 hover:shadow-[0_0_30px_rgba(57,255,20,0.1)] relative overflow-hidden ${className}`}
+    >
+        <div className="absolute inset-0 bg-gradient-to-br from-[#39ff14]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+        <div className="relative z-10">
+            <div className="w-12 h-12 rounded-2xl bg-[#39ff14]/10 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+                <Icon className="text-[#39ff14] w-6 h-6" />
+            </div>
+            <h3 className="text-xl font-bold text-white mb-3 group-hover:text-[#39ff14] transition-colors">{title}</h3>
+            <p className="text-gray-400 text-sm leading-relaxed group-hover:text-gray-300 transition-colors">{desc}</p>
+        </div>
+    </motion.div>
+);
 
 const Features: React.FC = () => {
-    const features = [
-        {
-            title: "Military-Grade Security",
-            description: "End-to-end encryption for all data packets moving through the Ghost Cloud Network.",
-            icon: <Shield className="w-8 h-8 text-[#39ff14]" />,
-        },
-        {
-            title: "Ultra-Low Latency",
-            description: "Edge computing nodes strategically placed globally to ensure sub-15ms response times.",
-            icon: <Zap className="w-8 h-8 text-[#39ff14]" />,
-        },
-        {
-            title: "Global Distribution",
-            description: "Automatically replicate your applications across our decentralized network of nodes.",
-            icon: <Globe className="w-8 h-8 text-[#39ff14]" />,
-        },
-        {
-            title: "High Performance",
-            description: "Optimized for computational-heavy workloads and real-time data processing.",
-            icon: <Cpu className="w-8 h-8 text-[#39ff14]" />,
-        },
-        {
-            title: "Zero-Knowledge Arch.",
-            description: "We don't see your data. You own the keys, you own the network, you own the infrastructure.",
-            icon: <Lock className="w-8 h-8 text-[#39ff14]" />,
-        },
-        {
-            title: "Infinite Scalability",
-            description: "The network expands as demand increases, ensuring your app never hits a bottleneck.",
-            icon: <Cloud className="w-8 h-8 text-[#39ff14]" />,
-        }
-    ];
-
     return (
-        <section id="features" className="py-24 bg-black relative">
+        <section id="features" className="py-24 relative overflow-hidden bg-black">
             <div className="container mx-auto px-6">
-                <div className="max-w-3xl mb-16">
-                    <h2 className="text-[#39ff14] text-sm font-bold tracking-widest uppercase mb-4">Core Infrastructure</h2>
-                    <h3 className="text-4xl md:text-5xl font-black text-white mb-6 tracking-tight">
-                        ENGINEERED FOR THE <br />
-                        <span className="text-gray-600">DECENTRALIZED FUTURE</span>
-                    </h3>
-                    <p className="text-gray-400 text-lg">
-                        Anchor provides the primitive building blocks required to build, deploy, and scale
-                        censorship-resistant applications on a global scale.
+                <div className="text-center mb-20">
+                    <motion.h2
+                        initial={{ opacity: 0, scale: 0.9 }}
+                        whileInView={{ opacity: 1, scale: 1 }}
+                        className="text-4xl md:text-6xl font-bold text-white mb-6"
+                    >
+                        ENGINEERED FOR <span className="text-[#39ff14] italic">PERFORMANCE</span>
+                    </motion.h2>
+                    <p className="text-gray-500 max-w-2xl mx-auto text-lg">
+                        Built on top of the Ghost Cloud Protocol, Anchor provides a suite of tools
+                        designed for the next generation of decentralized applications.
                     </p>
                 </div>
 
-                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-                    {features.map((f, i) => (
-                        <div
-                            key={i}
-                            className="group p-8 rounded-2xl bg-white/[0.02] border border-white/5 hover:border-[#39ff14]/30 transition-all duration-300 hover:-translate-y-2 cursor-pointer"
-                        >
-                            <div className="mb-6 p-3 rounded-xl bg-white/[0.03] w-fit group-hover:bg-[#39ff14]/10 transition-colors">
-                                {f.icon}
-                            </div>
-                            <h4 className="text-xl font-bold text-white mb-3 group-hover:text-[#39ff14] transition-colors">{f.title}</h4>
-                            <p className="text-gray-500 leading-relaxed group-hover:text-gray-400 transition-colors">
-                                {f.description}
-                            </p>
-                        </div>
-                    ))}
+                <div className="grid grid-cols-1 md:grid-cols-4 lg:grid-cols-6 gap-6">
+                    {/* Main Feature - Large */}
+                    <FeatureCard
+                        className="md:col-span-2 lg:col-span-3 lg:row-span-2"
+                        icon={Shield}
+                        title="Sovereign Security"
+                        desc="Military-grade encryption and decentralized identity management. Your data never leaves your control, protected by the Ghost Protocol's zero-knowledge proofs."
+                        delay={0.1}
+                    />
+
+                    <FeatureCard
+                        className="md:col-span-2 lg:col-span-3"
+                        icon={Zap}
+                        title="Instant Deployment"
+                        desc="Global distribution in under 60 seconds with our optimized container engine."
+                        delay={0.2}
+                    />
+
+                    <FeatureCard
+                        className="md:col-span-2 lg:col-span-2"
+                        icon={Globe}
+                        title="Edge-First"
+                        desc="Nodes in 120+ countries ensuring minimum latency for every user."
+                        delay={0.3}
+                    />
+
+                    <FeatureCard
+                        className="md:col-span-2 lg:col-span-1"
+                        icon={Cpu}
+                        title="Bare Metal"
+                        desc="Direct hardware access for maximum efficiency."
+                        delay={0.4}
+                    />
+
+                    <FeatureCard
+                        className="md:col-span-2 lg:col-span-2"
+                        icon={Lock}
+                        title="Private Compute"
+                        desc="Isolated execution environments for sensitive workloads."
+                        delay={0.5}
+                    />
+
+                    <FeatureCard
+                        className="md:col-span-2 lg:col-span-2"
+                        icon={Database}
+                        title="Elastic Storage"
+                        desc="Distributed object storage that scales with your needs."
+                        delay={0.6}
+                    />
+
+                    <FeatureCard
+                        className="md:col-span-2 lg:col-span-2"
+                        icon={Share2}
+                        title="P2P Mesh"
+                        desc="Direct node-to-node communication for ultra-fast data sync."
+                        delay={0.7}
+                    />
+
+                    <FeatureCard
+                        className="md:col-span-2 lg:col-span-2"
+                        icon={Activity}
+                        title="Real-time Stats"
+                        desc="Advanced monitoring with Recharts-powered analytics."
+                        delay={0.8}
+                    />
                 </div>
             </div>
         </section>

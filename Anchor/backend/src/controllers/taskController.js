@@ -25,8 +25,15 @@ exports.createTask = async (req, res) => {
 
         // Trigger orchestration for parallel, script deployment, or single node dispatch
         let success = false;
+
+        // Use specifically requested node if provided
+        const targetedNodeId = req.body.nodeId;
+
         if (task.type === 'Script_Deployment') {
-            const optimalNode = await orchestrator.selectOptimalNode(task.requirements || { minRam: '1GB' });
+            const optimalNode = targetedNodeId
+                ? await AnchorNode.findOne({ nodeId: targetedNodeId })
+                : await orchestrator.selectOptimalNode(task.requirements || { minRam: '1GB' });
+
             if (optimalNode) {
                 task.nodeId = optimalNode.nodeId;
                 await task.save();
@@ -35,7 +42,10 @@ exports.createTask = async (req, res) => {
         } else if (task.requirements.parallelNodes > 1) {
             success = await orchestrator.dispatchParallelTask(task, req.io);
         } else {
-            const optimalNode = await orchestrator.selectOptimalNode(task.requirements);
+            const optimalNode = targetedNodeId
+                ? await AnchorNode.findOne({ nodeId: targetedNodeId })
+                : await orchestrator.selectOptimalNode(task.requirements);
+
             if (optimalNode) {
                 task.nodeId = optimalNode.nodeId;
                 task.status = 'Processing';

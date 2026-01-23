@@ -31,6 +31,7 @@ app.use((req, res, next) => {
     req.io = io; // Attach socket to request
     next();
 });
+app.set('socketio', io); // Set for global access via app.get('socketio')
 
 // RESOURCE DISTRIBUTION ENGINE (Sharing Logic)
 const orchestrator = require('./services/orchestrator');
@@ -41,12 +42,14 @@ const clusterRoutes = require('./routes/clusterRoutes');
 const nodeRoutes = require('./routes/nodeRoutes');
 const computeRoutes = require('./routes/computeRoutes');
 const taskRoutes = require('./routes/taskRoutes');
+const dagRoutes = require('./routes/dag');
 
 app.use('/api/auth', authRoutes);
 app.use('/api/clusters', clusterRoutes);
 app.use('/api/nodes', nodeRoutes);
 app.use('/api/compute', computeRoutes);
 app.use('/api/tasks', taskRoutes);
+app.use('/api/dag', dagRoutes);
 
 // WEBSOCKET LOGIC FOR AGENTS (Real-time Resource Sharing)
 io.on('connection', async (socket) => {
@@ -87,6 +90,18 @@ io.on('connection', async (socket) => {
                 { metrics: data, lastHeartbeat: new Date(), status: 'Online' }
             );
             io.emit('global_network_update', { nodeId, data });
+        });
+
+        // 🎮 V-APP PROVISIONING SYNC: When a node finishes spawning a container
+        socket.on('provision_response', async (res) => {
+            console.log(`[SYNC] Node ${nodeId} reported provision status: ${res.success ? 'SUCCESS' : 'FAIL'}`);
+            if (res.success) {
+                const Cluster = require('./models/Cluster');
+                await Cluster.findOneAndUpdate(
+                    { nodeId: nodeId, status: 'Scaling' },
+                    { status: 'Healthy', endpoint: res.endpoint }
+                );
+            }
         });
     }
 

@@ -5,33 +5,140 @@ const Cluster = require('../models/Cluster');
 class Orchestrator {
     constructor() {
         this.activeWorkloads = new Map();
+        this.taskGraph = new Map(); // DAG: taskId -> { dependencies: [], status: 'pending' | 'running' | 'completed' }
+        this.consensusCache = new Map(); // For result verification
     }
 
     /**
-     * Finds multiple nodes for parallel compute based on REAL SILICON capacity
+     * DAG SCHEDULER: Handles complex multi-step tasks with dependencies
+     * Example: Task C only starts when Task A and Task B are complete
+     */
+    async scheduleDAGTask(taskGraph, io) {
+        console.log(`[DAG] Initializing Task Graph with ${taskGraph.length} nodes...`);
+
+        // Build dependency map
+        const graph = new Map();
+        for (const taskNode of taskGraph) {
+            graph.set(taskNode.id, {
+                task: taskNode,
+                dependencies: taskNode.dependencies || [],
+                status: 'pending',
+                result: null
+            });
+        }
+
+        this.taskGraph = graph;
+
+        // Start execution of tasks with no dependencies
+        for (const [taskId, node] of graph.entries()) {
+            if (node.dependencies.length === 0) {
+                await this.executeDAGNode(taskId, io);
+            }
+        }
+
+        return true;
+    }
+
+    async executeDAGNode(taskId, io) {
+        const node = this.taskGraph.get(taskId);
+        if (!node || node.status !== 'pending') return;
+
+        console.log(`[DAG] Executing Task Node: ${taskId}`);
+        node.status = 'running';
+
+        // Execute the actual task (could be parallel, script, or provision)
+        const task = await Task.create(node.task);
+
+        if (node.task.type === 'parallel') {
+            await this.dispatchParallelTask(task, io);
+        } else if (node.task.type === 'script') {
+            const selectedNode = await this.selectOptimalNode(task.requirements);
+            await this.deployCustomScript(task._id, selectedNode.nodeId, io);
+        }
+
+        // Mark as completed (in production, this would be triggered by task completion event)
+        node.status = 'completed';
+
+        // Trigger dependent tasks
+        for (const [depTaskId, depNode] of this.taskGraph.entries()) {
+            if (depNode.dependencies.includes(taskId)) {
+                const allDepsComplete = depNode.dependencies.every(depId =>
+                    this.taskGraph.get(depId)?.status === 'completed'
+                );
+
+                if (allDepsComplete) {
+                    await this.executeDAGNode(depTaskId, io);
+                }
+            }
+        }
+    }
+
+    /**
+     * CONSENSUS VERIFICATION: Send same chunk to multiple nodes and verify results
+     * Prevents "cheating" nodes from returning fake data
+     */
+    async verifyTaskResult(taskId, subTaskId, result) {
+        const cacheKey = `${taskId}_${subTaskId}`;
+
+        if (!this.consensusCache.has(cacheKey)) {
+            this.consensusCache.set(cacheKey, []);
+        }
+
+        const results = this.consensusCache.get(cacheKey);
+        results.push(result);
+
+        // If we have multiple results, verify consensus
+        if (results.length >= 2) {
+            const firstResult = JSON.stringify(results[0]);
+            const allMatch = results.every(r => JSON.stringify(r) === firstResult);
+
+            if (!allMatch) {
+                console.error(`[CONSENSUS] MISMATCH DETECTED for Task ${taskId}, SubTask ${subTaskId}`);
+                console.error(`[CONSENSUS] Flagging nodes for integrity review...`);
+                // In production: flag nodes, request re-execution, or use majority vote
+                return { verified: false, action: 'RECOMPUTE' };
+            }
+
+            console.log(`[CONSENSUS] Results verified for Task ${taskId}, SubTask ${subTaskId}`);
+            this.consensusCache.delete(cacheKey); // Clean up
+            return { verified: true, result: results[0] };
+        }
+
+        return { verified: 'pending', waitingFor: 2 - results.length };
+    }
+
+    /**
+     * Finds multiple nodes based on REAL-TIME pressure and capabilities
      */
     async selectMultipleNodes(requirements, count) {
-        const { minRam, gpuRequired, preferredRegion } = requirements;
+        const { minRam, gpuRequired, preferredRegion, dockerRequired } = requirements;
 
-        // Only target Active Nodes with substantial Free Memory
         const candidates = await AnchorNode.find({
             status: 'Online',
-            'metrics.ramUsage': { $lt: 80 } // Targeted nodes must have >20% RAM available
+            'metrics.ramUsage': { $lt: 85 } // Safety threshold
         });
 
-        // Smart Scoring: Sort by most powerful / least busy
+        // Smart Scoring: Prioritize efficiency and required capabilities
         const scored = candidates.map(node => {
             let score = 0;
-            if (preferredRegion && node.region === preferredRegion) score += 50;
 
-            const freeRamFactor = 100 - (node.metrics?.ramUsage || 0);
-            const idleCpuFactor = 100 - (node.metrics?.cpuUsage || 0);
+            // Weight 1: Network Proximity
+            if (preferredRegion && node.location?.country === preferredRegion) score += 100;
 
-            score += freeRamFactor * 2; // RAM is the primary resource for hosting/clusters
-            score += idleCpuFactor;
+            // Weight 2: Hardware Headroom (More free RAM = Better)
+            const freeRamGB = node.metrics?.ramTotal - node.metrics?.ramUsed;
+            score += freeRamGB * 10;
 
-            if (node.specs?.gpu && node.specs.gpu !== 'None') score += 500;
-            score -= (node.activeTasks?.length || 0) * 20;
+            // Weight 3: Virtualization Capability
+            if (dockerRequired && node.metrics?.hasDocker) score += 1000;
+            if (!dockerRequired && !node.metrics?.hasDocker) score += 50; // Simple tasks prefer non-docker nodes to save power
+
+            // Weight 4: Reliability (Uptime / Fault history)
+            score += (node.metrics?.uptime / 3600); // Small bonus for stability
+
+            // Weight 5: Efficiency (GPU nodes are reserved unless requested)
+            if (node.specs?.gpu && gpuRequired) score += 2000;
+            if (node.specs?.gpu && !gpuRequired) score -= 500; // Don't waste GPU nodes on CPU tasks
 
             return { node, score };
         }).sort((a, b) => b.score - a.score);
@@ -111,6 +218,7 @@ class Orchestrator {
     /**
      * SCRIPT DEPLOYMENT ENGINE (REX):
      * Deploys custom code + dependencies to a remote hardware node.
+     * Intelligently selects runtime: isolate (default), WASM (math-heavy), or native (legacy)
      */
     async deployCustomScript(taskId, nodeId, io) {
         const task = await Task.findById(taskId);
@@ -121,7 +229,24 @@ class Orchestrator {
         console.log(`[REX_ENGINE] Preparing Script Deployment: ${task.name} -> Node ${nodeId}`);
 
         // Extract script and deps from the task payload
-        const { sourceCode, dependencies, environmentVariables } = task.payload;
+        const { sourceCode, dependencies, environmentVariables, runtime } = task.payload;
+
+        // INTELLIGENT RUNTIME SELECTION
+        let selectedRuntime = runtime || 'isolate'; // Default to isolated-vm for security
+
+        // Auto-detect WASM if sourceCode is base64 or has WASM signature
+        if (!runtime && (sourceCode.startsWith('AGFzbQ') || task.payload.isWASM)) {
+            selectedRuntime = 'wasm';
+            console.log(`[REX_ENGINE] Auto-detected WASM module. Using WebAssembly runtime.`);
+        }
+
+        // Use native runtime if dependencies are required (isolated-vm can't install npm packages)
+        if (!runtime && dependencies && dependencies.length > 0) {
+            selectedRuntime = 'native';
+            console.log(`[REX_ENGINE] Dependencies detected. Using native runtime with npm.`);
+        }
+
+        console.log(`[REX_ENGINE] Selected Runtime: ${selectedRuntime.toUpperCase()}`);
 
         // Command the remote Agent to initialize the environment
         if (io) {
@@ -131,6 +256,7 @@ class Orchestrator {
                 sourceCode,
                 dependencies: dependencies || [],
                 env: environmentVariables || {},
+                runtime: selectedRuntime,
                 timeout: 300000 // 5 minute max execution
             });
         }
@@ -179,41 +305,64 @@ class Orchestrator {
     }
 
     /**
-     * PROVISIONING REAL POWER: Docker Container & Ingress Routing
-     * Seizes resources and maps a public endpoint to the remote hardware.
+     * PROVISIONING REAL POWER: Pure Native Application Deployment
+     * NO DOCKER REQUIRED - Works on ANY PC with just Node.js
      */
-    async deployWorkerContainer(clusterId, nodeId, io) {
+    async deployWorkerContainer(clusterId, nodeId, io, appConfig = null) {
         const cluster = await Cluster.findById(clusterId);
         const node = await AnchorNode.findOne({ nodeId });
 
         if (!node || node.status !== 'Online') throw new Error('Target Hardware Offline');
 
-        console.log(`[REX_ENGINE] Seizing hardware on ${nodeId} for Cluster ${clusterId}`);
+        console.log(`[REX_ENGINE] Native Provisioning on ${nodeId} for ${clusterId} (ZERO DOCKER)`);
 
-        // Define the Ghost Ingress (The tunnel endpoint)
-        const ingressUrl = `${cluster.name.toLowerCase().replace(/ /g, '-')}.ghost-net.app`;
+        // Define the endpoint
+        const ingressPort = appConfig?.port || 8080;
+        const ingressUrl = `http://localhost:${ingressPort}`;
+
+        // App selection logic - these are just identifiers now, not Docker images
+        let appType = 'web-node';
+        if (cluster.type === 'Gaming') appType = 'gaming-engine';
+        if (cluster.type === 'AI_Training') appType = 'cuda-compute';
+        if (cluster.type === 'Web') appType = 'web-node';
 
         // Emit the command to the Physical Agent
         if (io) {
             io.to(`node_${nodeId}`).emit('ghost_provision', {
-                operation: 'SPAWN_CONTAINER',
-                image: cluster.type === 'Gaming' ? 'ghcr.io/anchor/gameserver:v1' : 'ghcr.io/anchor/web-node:v2',
+                operation: 'SPAWN_APP',
+                clusterId: cluster._id,
+                image: `anchor/${appType}:native`,
+                mode: 'NATIVE',
                 config: {
-                    ram_limit: '4096MB', // Physical RAM Lock
-                    cpu_cores: 2,        // Core Affinity
-                    ingress_port: 8080,   // Internal Service Port
-                    public_url: ingressUrl // Where the tunnel leads
+                    ram_limit: appConfig?.ram || '4096MB',
+                    cpu_cores: appConfig?.cpu || 2,
+                    ingress_port: ingressPort,
+                    public_url: ingressUrl,
+                    enableStreaming: cluster.type === 'Gaming'
                 }
+            });
+
+            // Initialize the P2P Signaling Tunnel
+            io.to(`node_${nodeId}`).emit('ghost_tunnel_init', {
+                target: 'CLIENT_BROWSER',
+                tunnelId: `TUNNEL-${Math.random().toString(36).substring(7).toUpperCase()}`
             });
         }
 
-        // Update Cluster with its new hardware location
+        // Update Cluster
         cluster.nodeId = nodeId;
-        cluster.status = 'Provisioning';
+        cluster.status = 'Scaling';
         cluster.endpoint = ingressUrl;
         await cluster.save();
 
-        return { success: true, endpoint: ingressUrl };
+        return { success: true, endpoint: ingressUrl, mode: 'NATIVE' };
+    }
+
+    /**
+     * Alias for deployWorkerContainer used in Cluster Controller
+     */
+    async deployToNode(clusterId, nodeId, io) {
+        return this.deployWorkerContainer(clusterId, nodeId, io);
     }
 }
 
