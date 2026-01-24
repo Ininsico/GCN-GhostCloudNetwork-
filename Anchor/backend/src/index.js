@@ -1,136 +1,129 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
-const dotenv = require('dotenv');
-const { createServer } = require('http');
-const { Server } = require('socket.io');
-
-dotenv.config();
+const http = require('http');
+const socketio = require('socket.io');
 
 const app = express();
-const httpServer = createServer(app);
+const server = http.createServer(app);
+const io = socketio(server, { cors: { origin: '*' } });
 
-const io = new Server(httpServer, {
-    cors: {
-        origin: '*',
-        methods: ['GET', 'POST']
-    }
-});
-
-// MIDDLEWARE
 app.use(cors());
 app.use(express.json());
 
-// ROUTES
-const podRoutes = require('./routes/podRoutes');
-app.use('/api/pods', podRoutes);
+// MongoDB Models
+const NodeSchema = new mongoose.Schema({
+    nodeId: String,
+    status: String,
+    cpuUsage: Number,
+    ramUsage: Number,
+    ramTotal: Number,
+    lastSeen: Date
+});
+const Node = mongoose.model('Node', NodeSchema);
 
-// AGENT SOCKET HANDLING
-const AnchorNode = require('./models/AnchorNode');
-const User = require('./models/User');
+const PodSchema = new mongoose.Schema({
+    name: String,
+    image: String,
+    command: [String],
+    status: String,
+    nodeId: String,
+    createdAt: { type: Date, default: Date.now }
+});
+const Pod = mongoose.model('Pod', PodSchema);
 
-io.on('connection', async (socket) => {
-    const agentNodeId = socket.handshake.query.nodeId;
+// API: Create Pod
+app.post('/api/pods', async (req, res) => {
+    try {
+        const { name, image, command } = req.body;
+        const pod = await Pod.create({ name, image, command, status: 'Pending' });
 
-    if (agentNodeId) {
-        console.log(`[AGENT] Connected: ${agentNodeId}`);
-        socket.join(`node_${agentNodeId}`);
+        // Find available node
+        const node = await Node.findOne({ status: 'Online' }).sort({ cpuUsage: 1 });
+        if (node) {
+            pod.status = 'Scheduled';
+            pod.nodeId = node.nodeId;
+            await pod.save();
 
-        try {
-            let node = await AnchorNode.findOne({ nodeId: agentNodeId });
-            if (!node) {
-                const firstUser = await User.findOne();
-                if (firstUser) {
-                    node = new AnchorNode({
-                        userId: firstUser._id,
-                        nodeId: agentNodeId,
-                        name: `Node_${agentNodeId.substring(0, 6)}`,
-                        specs: { cpu: 'Detecting...', ram: 'Detecting...' },
-                        status: 'Online'
-                    });
-                    await node.save();
-                    console.log(`[AUTO-PROVISION] Node registered: ${agentNodeId}`);
-                }
-            } else {
-                node.status = 'Online';
-                await node.save();
-            }
-        } catch (err) {
-            console.error('[AGENT] Handshake error:', err.message);
+            // Send to agent
+            io.to(`node_${node.nodeId}`).emit('pod_start', {
+                podId: pod._id,
+                name: pod.name,
+                image: pod.image,
+                command: pod.command
+            });
         }
 
-        // Agent metrics
-        socket.on('agent_metrics', async (metrics) => {
-            try {
-                await AnchorNode.findOneAndUpdate(
-                    { nodeId: agentNodeId },
-                    {
-                        metrics: {
-                            cpuUsage: metrics.cpuUsage,
-                            ramUsage: metrics.ramUsage,
-                            ramTotal: metrics.ramTotal,
-                            ramUsed: metrics.ramUsed,
-                            temp: metrics.temp,
-                            uptime: metrics.uptime
-                        },
-                        hasDocker: metrics.hasDocker,
-                        status: 'Online',
-                        lastSeen: new Date()
-                    }
-                );
-            } catch (err) {
-                console.error('[AGENT] Metrics update failed:', err.message);
-            }
-        });
-
-        socket.on('disconnect', async () => {
-            console.log(`[AGENT] Disconnected: ${agentNodeId}`);
-            try {
-                await AnchorNode.findOneAndUpdate(
-                    { nodeId: agentNodeId },
-                    { status: 'Offline' }
-                );
-            } catch (err) {
-                console.error('[AGENT] Disconnect update failed:', err.message);
-            }
-        });
+        res.json(pod);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
     }
 });
 
-// STARTUP
+// API: Get Pods
+app.get('/api/pods', async (req, res) => {
+    const pods = await Pod.find().sort({ createdAt: -1 });
+    res.json(pods);
+});
+
+// API: Update Pod Status
+app.patch('/api/pods/:id/status', async (req, res) => {
+    const { status, exitCode } = req.body;
+    const pod = await Pod.findByIdAndUpdate(req.params.id, { status, exitCode }, { new: true });
+    res.json(pod);
+});
+
+// API: Get Nodes
+app.get('/api/nodes', async (req, res) => {
+    const nodes = await Node.find();
+    res.json(nodes);
+});
+
+// Socket.io: Agent Connection
+io.on('connection', (socket) => {
+    const nodeId = socket.handshake.query.nodeId;
+    if (!nodeId) return;
+
+    console.log(`[AGENT] Connected: ${nodeId}`);
+    socket.join(`node_${nodeId}`);
+
+    // Register node
+    Node.findOneAndUpdate(
+        { nodeId },
+        { nodeId, status: 'Online', lastSeen: new Date() },
+        { upsert: true }
+    ).exec();
+
+    // Receive metrics
+    socket.on('agent_metrics', async (metrics) => {
+        await Node.findOneAndUpdate(
+            { nodeId },
+            {
+                cpuUsage: metrics.cpuUsage,
+                ramUsage: metrics.ramUsage,
+                ramTotal: metrics.ramTotal,
+                status: 'Online',
+                lastSeen: new Date()
+            }
+        );
+    });
+
+    socket.on('disconnect', () => {
+        console.log(`[AGENT] Disconnected: ${nodeId}`);
+        Node.findOneAndUpdate({ nodeId }, { status: 'Offline' }).exec();
+    });
+});
+
+// Start Server
 const PORT = process.env.PORT || 5000;
 const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017/anchor';
 
-async function start() {
-    try {
-        await mongoose.connect(MONGO_URI);
-        console.log('✅ MongoDB connected');
-
-        const scheduler = require('./core/scheduler');
-        scheduler.init(io);
-        console.log('✅ Scheduler initialized');
-
-        httpServer.listen(PORT, () => {
-            console.log('\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-            console.log('🚀 ANCHOR CLOUD - ONLINE');
-            console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-            console.log(`🌐 HTTP Server: http://localhost:${PORT}`);
-            console.log(`👑 Scheduler: ACTIVE`);
-            console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
-        });
-
-    } catch (err) {
-        console.error('❌ STARTUP FAILED:', err);
-        process.exit(1);
-    }
-}
-
-process.on('SIGINT', async () => {
-    console.log('\n🛑 Shutting down...');
-    await mongoose.disconnect();
-    process.exit(0);
+mongoose.connect(MONGO_URI).then(() => {
+    console.log('✅ MongoDB connected');
+    server.listen(PORT, () => {
+        console.log(`\n🚀 ANCHOR CLOUD - http://localhost:${PORT}\n`);
+    });
+}).catch(err => {
+    console.error('❌ MongoDB connection failed:', err);
+    process.exit(1);
 });
-
-start();
-
-module.exports = { app, httpServer, io };
