@@ -9,9 +9,10 @@ import {
     LogOut,
     Zap,
     Globe,
-    Shield,
     Layers,
-    Search
+    BookOpen,
+    Gamepad2,
+    HardDrive
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 
@@ -22,20 +23,44 @@ interface SidebarProps {
 }
 
 const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, onLogout }) => {
-    const menuItems = [
+    const supervisorItems = [
         { id: 'overview', icon: LayoutDashboard, label: 'Overview' },
-        { id: 'websockets', icon: Server, label: 'WebSocket Clusters' },
-        { id: 'nodes', icon: Cpu, label: 'Anchor Nodes' },
-        { id: 'Marketplace', icon: Layers, label: 'Compute Pool' },
-        { id: 'Monitoring', icon: Activity, label: 'Monitoring' },
-        { id: 'Billing', icon: CreditCard, label: 'Billing & Credits' },
-        { id: 'settings', icon: Settings, label: 'System Settings' },
+        { id: 'monitoring', icon: Activity, label: 'Global Network' },
+        { id: 'nodes', icon: Cpu, label: 'Node Explorer' },
     ];
+
+    const workspaceItems = [
+        { id: 'compute', icon: Server, label: 'My Servers' },
+        { id: 'notebooks', icon: BookOpen, label: 'AI Notebooks' },
+        { id: 'gaming', icon: Gamepad2, label: 'Cloud Gaming' },
+        { id: 'marketplace', icon: Layers, label: 'Resource Market' },
+        { id: 'billing', icon: CreditCard, label: 'Billing' },
+        { id: 'settings', icon: Settings, label: 'Settings' },
+    ];
+
+    const NavItem = ({ item }: { item: any }) => (
+        <button
+            onClick={() => setActiveTab(item.id)}
+            className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all duration-200 group ${activeTab === item.id
+                ? 'bg-[#39ff14]/10 text-[#39ff14] border border-[#39ff14]/20'
+                : 'text-gray-400 hover:text-white hover:bg-white/5'
+                }`}
+        >
+            <item.icon className={`w-4 h-4 ${activeTab === item.id ? 'text-[#39ff14]' : 'group-hover:text-[#39ff14] transition-colors'}`} />
+            <span className="font-medium text-sm">{item.label}</span>
+            {activeTab === item.id && (
+                <motion.div
+                    layoutId="sidebar-active"
+                    className="ml-auto w-1 h-4 bg-[#39ff14] rounded-full"
+                />
+            )}
+        </button>
+    );
 
     return (
         <div className="flex flex-col h-full bg-black border-r border-[#39ff14]/10 w-64 text-white">
             <div className="p-6 flex items-center gap-3">
-                <div className="w-10 h-10 bg-[#39ff14] rounded-lg flex items-center justify-center">
+                <div className="w-10 h-10 bg-[#39ff14] rounded-lg flex items-center justify-center shadow-[0_0_20px_rgba(57,255,20,0.3)]">
                     <Zap className="text-black w-6 h-6 fill-current" />
                 </div>
                 <div>
@@ -44,26 +69,24 @@ const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, onLogout }) 
                 </div>
             </div>
 
-            <div className="flex-1 px-4 py-6 space-y-2 overflow-y-auto">
-                {menuItems.map((item) => (
-                    <button
-                        key={item.id}
-                        onClick={() => setActiveTab(item.id)}
-                        className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group ${activeTab === item.id
-                            ? 'bg-[#39ff14]/10 text-[#39ff14] border border-[#39ff14]/20'
-                            : 'text-gray-400 hover:text-white hover:bg-white/5'
-                            }`}
-                    >
-                        <item.icon className={`w-5 h-5 ${activeTab === item.id ? 'text-[#39ff14]' : 'group-hover:text-[#39ff14] transition-colors'}`} />
-                        <span className="font-medium">{item.label}</span>
-                        {activeTab === item.id && (
-                            <motion.div
-                                layoutId="sidebar-active"
-                                className="ml-auto w-1 h-5 bg-[#39ff14] rounded-full"
-                            />
-                        )}
-                    </button>
-                ))}
+            <div className="flex-1 px-4 py-4 space-y-6 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-800">
+
+                {/* Supervisor Section */}
+                <div className="space-y-1">
+                    <p className="px-4 text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2">Supervisor</p>
+                    {supervisorItems.map((item) => (
+                        <NavItem key={item.id} item={item} />
+                    ))}
+                </div>
+
+                {/* Workspace Section */}
+                <div className="space-y-1">
+                    <p className="px-4 text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-2">User Workspace</p>
+                    {workspaceItems.map((item) => (
+                        <NavItem key={item.id} item={item} />
+                    ))}
+                </div>
+
             </div>
 
             <div className="p-4 border-t border-[#39ff14]/10">

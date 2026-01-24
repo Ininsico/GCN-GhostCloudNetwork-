@@ -7,11 +7,8 @@ const { Server } = require('socket.io');
 
 dotenv.config();
 
-/**
- * CORE ANCHOR HYBRID CLOUD SERVER
- */
 const app = express();
-const httpServer = createServer(app); // REAL HTTP SERVER CREATION
+const httpServer = createServer(app);
 
 const io = new Server(httpServer, {
     cors: {
@@ -20,113 +17,120 @@ const io = new Server(httpServer, {
     }
 });
 
-const security = require('./utils/securityEngine');
-const security = require('./utils/securityEngine');
-const ledger = require('./services/ledgerService'); // REAL CREDIT LEDGER
-
-// GLOBAL MIDDLEWARE
+// MIDDLEWARE
 app.use(cors());
 app.use(express.json());
-app.use(security.ddosMitigator.bind(security)); // ACTIVATED DDOS MITIGATION
-app.use((req, res, next) => {
-    req.io = io; // Attach socket to request
-    next();
-});
-app.set('socketio', io); // Set for global access via app.get('socketio')
-
-// RESOURCE DISTRIBUTION ENGINE (Sharing Logic)
-const orchestrator = require('./services/orchestrator');
 
 // ROUTES
-const authRoutes = require('./routes/authRoutes');
-const clusterRoutes = require('./routes/clusterRoutes');
-const nodeRoutes = require('./routes/nodeRoutes');
-const computeRoutes = require('./routes/computeRoutes');
-const taskRoutes = require('./routes/taskRoutes');
-const dagRoutes = require('./routes/dag');
+const podRoutes = require('./routes/podRoutes');
+app.use('/api/pods', podRoutes);
 
-app.use('/api/auth', authRoutes);
-app.use('/api/clusters', clusterRoutes);
-app.use('/api/nodes', nodeRoutes);
-app.use('/api/compute', computeRoutes);
-app.use('/api/tasks', taskRoutes);
-app.use('/api/dag', dagRoutes);
-app.use('/api/ledger', require('./routes/ledgerRoutes')); // REAL CREDIT SYSTEM
+// AGENT SOCKET HANDLING
+const AnchorNode = require('./models/AnchorNode');
+const User = require('./models/User');
 
-// WEBSOCKET LOGIC FOR AGENTS (Real-time Resource Sharing)
 io.on('connection', async (socket) => {
-    const nodeId = socket.handshake.query.nodeId;
+    const agentNodeId = socket.handshake.query.nodeId;
 
-    if (nodeId) {
-        console.log(`[AGENT ATTEMPT] Node: ${nodeId}`);
-        socket.join(`node_${nodeId}`);
-
-        // Ensure node exists in database (Auto-provision for dev)
-        const AnchorNode = require('./models/AnchorNode');
-        const User = require('./models/User');
+    if (agentNodeId) {
+        console.log(`[AGENT] Connected: ${agentNodeId}`);
+        socket.join(`node_${agentNodeId}`);
 
         try {
-            let node = await AnchorNode.findOne({ nodeId });
+            let node = await AnchorNode.findOne({ nodeId: agentNodeId });
             if (!node) {
-                const firstUser = await User.findOne(); // Assign to first user for dev
+                const firstUser = await User.findOne();
                 if (firstUser) {
                     node = new AnchorNode({
                         userId: firstUser._id,
-                        nodeId,
-                        name: `Real_Node_${nodeId.substring(0, 4)}`,
-                        specs: { cpu: 'Detecting...', ram: 'Detecting...' }
+                        nodeId: agentNodeId,
+                        name: `Node_${agentNodeId.substring(0, 6)}`,
+                        specs: { cpu: 'Detecting...', ram: 'Detecting...' },
+                        status: 'Online'
                     });
                     await node.save();
-                    console.log(`[AUTO-PROVISION] Real Hardware Registered: ${nodeId}`);
+                    console.log(`[AUTO-PROVISION] Node registered: ${agentNodeId}`);
                 }
+            } else {
+                node.status = 'Online';
+                await node.save();
             }
         } catch (err) {
-            console.error('Handshake Error:', err.message);
+            console.error('[AGENT] Handshake error:', err.message);
         }
 
-        // Listen for real resource metrics from Anchor Agent
-        socket.on('agent_metrics', async (data) => {
-            const AnchorNode = require('./models/AnchorNode');
-            await AnchorNode.findOneAndUpdate(
-                { nodeId },
-                { metrics: data, lastHeartbeat: new Date(), status: 'Online' }
-            );
-            io.emit('global_network_update', { nodeId, data });
+        // Agent metrics
+        socket.on('agent_metrics', async (metrics) => {
+            try {
+                await AnchorNode.findOneAndUpdate(
+                    { nodeId: agentNodeId },
+                    {
+                        metrics: {
+                            cpuUsage: metrics.cpuUsage,
+                            ramUsage: metrics.ramUsage,
+                            ramTotal: metrics.ramTotal,
+                            ramUsed: metrics.ramUsed,
+                            temp: metrics.temp,
+                            uptime: metrics.uptime
+                        },
+                        hasDocker: metrics.hasDocker,
+                        status: 'Online',
+                        lastSeen: new Date()
+                    }
+                );
+            } catch (err) {
+                console.error('[AGENT] Metrics update failed:', err.message);
+            }
         });
 
-        // 🎮 V-APP PROVISIONING SYNC: When a node finishes spawning a container
-        socket.on('provision_response', async (res) => {
-            console.log(`[SYNC] Node ${nodeId} reported provision status: ${res.success ? 'SUCCESS' : 'FAIL'}`);
-            if (res.success) {
-                const Cluster = require('./models/Cluster');
-                await Cluster.findOneAndUpdate(
-                    { nodeId: nodeId, status: 'Scaling' },
-                    { status: 'Healthy', endpoint: res.endpoint }
+        socket.on('disconnect', async () => {
+            console.log(`[AGENT] Disconnected: ${agentNodeId}`);
+            try {
+                await AnchorNode.findOneAndUpdate(
+                    { nodeId: agentNodeId },
+                    { status: 'Offline' }
                 );
+            } catch (err) {
+                console.error('[AGENT] Disconnect update failed:', err.message);
             }
         });
     }
-
-    socket.on('disconnect', () => {
-        console.log('Client/Agent disconnected');
-    });
 });
 
 // STARTUP
 const PORT = process.env.PORT || 5000;
 const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017/anchor';
 
-mongoose.connect(MONGO_URI)
-    .then(() => {
-        console.log('--- ANCHOR BACKEND INITIALIZED ---');
-        console.log(`Database: Connected to MongoDB`);
+async function start() {
+    try {
+        await mongoose.connect(MONGO_URI);
+        console.log('✅ MongoDB connected');
+
+        const scheduler = require('./core/scheduler');
+        scheduler.init(io);
+        console.log('✅ Scheduler initialized');
+
         httpServer.listen(PORT, () => {
-            console.log(`Server: Operational on port ${PORT}`);
-            console.log(`Orchestrator: Intelligent Routing Active`);
+            console.log('\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+            console.log('🚀 ANCHOR CLOUD - ONLINE');
+            console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+            console.log(`🌐 HTTP Server: http://localhost:${PORT}`);
+            console.log(`👑 Scheduler: ACTIVE`);
+            console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
         });
-    })
-    .catch(err => {
-        console.error('CRITICAL STARTUP ERROR:', err);
-    });
+
+    } catch (err) {
+        console.error('❌ STARTUP FAILED:', err);
+        process.exit(1);
+    }
+}
+
+process.on('SIGINT', async () => {
+    console.log('\n🛑 Shutting down...');
+    await mongoose.disconnect();
+    process.exit(0);
+});
+
+start();
 
 module.exports = { app, httpServer, io };

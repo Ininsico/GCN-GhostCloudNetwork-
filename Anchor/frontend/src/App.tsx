@@ -61,9 +61,8 @@ const App = () => {
           <Route
             path="/dashboard"
             element={
-              isAuthenticated ?
-                <DashboardMain onLogout={handleLogout} user={user} /> :
-                <Navigate to="/login" replace />
+              // Temporary bypass for UI/UX review
+              <DashboardMain onLogout={handleLogout} user={user || { name: 'Temp User' }} />
             }
           />
           <Route path="*" element={<Navigate to="/" replace />} />

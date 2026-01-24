@@ -546,6 +546,8 @@ const HowItWorksPage = () => {
                     features={["Predictive Load Balancing", "Auto-Healing Nodes", "Latency-Optimized Routing", "Self-Scaling Clusters"]}
                 />
 
+                <AISchedulerDetail />
+
                 <NetworkTopologyMap />
 
                 <StepSection
@@ -555,6 +557,12 @@ const HowItWorksPage = () => {
                     desc="Nodes return encrypted results which are verified through our Proof-of-Execution protocol. Once consensus is reached, the output is reconstructed for the end-user."
                     features={["Multi-Node Verification", "Byzantine Fault Tolerance", "Atomic Result Merging", "Instant Finality"]}
                 />
+
+                <ConsensusMechanism />
+
+                <PaymentLayer />
+
+                <UseCasesGrid />
             </main>
 
             <Footer />

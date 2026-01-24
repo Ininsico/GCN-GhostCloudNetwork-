@@ -2,12 +2,16 @@ import React, { useState } from 'react';
 import Sidebar from './Sidebar';
 import TopBar from './TopBar';
 import Overview from './Overview';
-import WebSocketManager from './WebSocketManager';
+
 import AnchorNodes from './AnchorNodes';
 import ResourceMarketplace from './ResourceMarketplace';
 import Billing from './Billing';
 import Monitoring from './Monitoring';
 import SystemSettings from './SystemSettings';
+import ServerManager from './Compute/ServerManager';
+import Notebooks from './AI/Notebooks';
+import CloudGaming from './Gaming/CloudGaming';
+import StorageBuckets from './Storage/StorageBuckets';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface DashboardMainProps {
@@ -22,15 +26,21 @@ const DashboardMain: React.FC<DashboardMainProps> = ({ onLogout, user }) => {
         switch (activeTab) {
             case 'overview':
                 return <Overview />;
-            case 'websockets':
-                return <WebSocketManager />;
+            case 'monitoring':
+                return <Monitoring />;
             case 'nodes':
                 return <AnchorNodes />;
-            case 'Marketplace':
+            case 'compute':
+                return <ServerManager />;
+            case 'notebooks':
+                return <Notebooks />;
+            case 'gaming':
+                return <CloudGaming />;
+            case 'storage':
+                return <StorageBuckets />;
+            case 'marketplace':
                 return <ResourceMarketplace />;
-            case 'Monitoring':
-                return <Monitoring />;
-            case 'Billing':
+            case 'billing':
                 return <Billing />;
             case 'settings':
                 return <SystemSettings />;

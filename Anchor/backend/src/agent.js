@@ -77,6 +77,107 @@ async function startAgent() {
         }, 3000);
     });
 
+    // 🎯 POD EXECUTION: Kubernetes-style Pod Scheduling
+    socket.on('pod_start', async (pod) => {
+        const { podId, spec, namespace } = pod;
+        console.log(`\n[POD] Starting pod ${spec.name} (${podId}) in namespace ${namespace}`);
+
+        try {
+            const container = spec.containers[0];
+            const { name, image, command, env, resources } = container;
+
+            // Create pod workspace
+            const podDir = path.join(WORK_DIR, 'pods', podId);
+            await fs.ensureDir(podDir);
+
+            // Execute based on image type
+            if (image.includes('node') || image.includes('javascript')) {
+                // Node.js workload
+                const script = command ? command.join(' ') : 'console.log("Pod running")';
+                await fs.writeFile(path.join(podDir, 'index.js'), script);
+
+                const proc = exec('node index.js', {
+                    cwd: podDir,
+                    env: { ...process.env, ...env },
+                    timeout: 300000 // 5 minutes
+                });
+
+                proc.stdout.on('data', (d) => console.log(`[POD ${spec.name}] ${d.trim()}`));
+                proc.stderr.on('data', (d) => console.error(`[POD ${spec.name}] ${d.trim()}`));
+
+                proc.on('exit', async (code) => {
+                    console.log(`[POD] ${spec.name} exited with code ${code}`);
+
+                    // Report status back to backend
+                    await axios.patch(`${BACKEND_URL}/api/pods/${podId}/status`, {
+                        status: code === 0 ? 'Completed' : 'Failed',
+                        exitCode: code
+                    }, {
+                        headers: { 'x-agent-key': 'GHOST_AGENT_RESERVED_KEY_77' }
+                    });
+                });
+
+            } else if (image.includes('python')) {
+                // Python workload
+                const script = command ? command.join('\n') : 'print("Pod running")';
+                await fs.writeFile(path.join(podDir, 'main.py'), script);
+
+                const proc = exec('python main.py', {
+                    cwd: podDir,
+                    env: { ...process.env, ...env },
+                    timeout: 300000
+                });
+
+                proc.stdout.on('data', (d) => console.log(`[POD ${spec.name}] ${d.trim()}`));
+                proc.stderr.on('data', (d) => console.error(`[POD ${spec.name}] ${d.trim()}`));
+
+                proc.on('exit', async (code) => {
+                    await axios.patch(`${BACKEND_URL}/api/pods/${podId}/status`, {
+                        status: code === 0 ? 'Completed' : 'Failed',
+                        exitCode: code
+                    }, {
+                        headers: { 'x-agent-key': 'GHOST_AGENT_RESERVED_KEY_77' }
+                    });
+                });
+
+            } else if (hostCapabilities.docker) {
+                // Docker container execution
+                console.log(`[POD] Executing Docker container: ${image}`);
+
+                const dockerCmd = `docker run --rm --name ${podId} ${image} ${command ? command.join(' ') : ''}`;
+                const proc = exec(dockerCmd, {
+                    timeout: 300000
+                });
+
+                proc.stdout.on('data', (d) => console.log(`[POD ${spec.name}] ${d.trim()}`));
+                proc.stderr.on('data', (d) => console.error(`[POD ${spec.name}] ${d.trim()}`));
+
+                proc.on('exit', async (code) => {
+                    await axios.patch(`${BACKEND_URL}/api/pods/${podId}/status`, {
+                        status: code === 0 ? 'Completed' : 'Failed',
+                        exitCode: code
+                    }, {
+                        headers: { 'x-agent-key': 'GHOST_AGENT_RESERVED_KEY_77' }
+                    });
+                });
+
+            } else {
+                throw new Error('Unsupported image type and Docker not available');
+            }
+
+            console.log(`[POD] ${spec.name} started successfully`);
+
+        } catch (err) {
+            console.error(`[POD] Failed to start pod:`, err.message);
+            await axios.patch(`${BACKEND_URL}/api/pods/${podId}/status`, {
+                status: 'Failed',
+                error: err.message
+            }, {
+                headers: { 'x-agent-key': 'GHOST_AGENT_RESERVED_KEY_77' }
+            });
+        }
+    });
+
     // ⚡ PARALLEL WORKLOAD ENGINE: Handling Slice-Based Compute
     socket.on('new_task', async (task) => {
         const { taskId, subTaskId, payload, type } = task;
