@@ -177,9 +177,116 @@ export const logout = (req, res) => {
     });
 };
 
-export const protect = async (req,res,next)=>{
-    try{
+export const protect = async (req, res, next) => {
+    try {
         let token;
-        
+        //Getting token from header
+        if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
+            token = req.headers.authorization.split(' ')[1];
+        }
+        //Getting token from cookies
+        else if (req.cookie.jwt) {
+            token = req.cookie.jwt;
+        }
+        if (!token) {
+            return res.status(401).json({
+                status: 'error',
+                message: 'You are not logged in.Please Log in to get Access'
+            });
+        }
+        //verification token
+        const decoded = await promisify(jwt.verify)(token, process.env.JWT_SECRET);
+        //Check if user still exsit
+        const currentuser = await User.findById(decoded.id).select('+passwordChangedAt');
+        if (!currentuser) {
+            return res.status(401).json({
+                status: 'error',
+                message: 'The User belonging to this token no longer exsits'
+            });
+        }
+        //if user changed password after token was issued
+        if (currentuser.changedPasswordAfter(decoded.iat)) {
+            return res.status(401).json({
+                status: 'error',
+                message: 'User recently changed password.Please Log in again'
+            });
+        }
+        //Check if account is active
+        if (!currentuser.isActive) {
+            return res.status(403).json({
+                status: 'error',
+                message: "Your Account has been deactivated"
+            });
+        }
+        //grant access to protected route
+        req.user = currentuser;
+        req.locals.user = currentuser;
+        next();
+    } catch (error) {
+        if (error.name === 'JsonWebTokenError') {
+            return res.status(401).json({
+                status: 'error',
+                message: 'Invalid Token,Please Login again'
+            });
+        }
+        if (error.name === 'TokenExpiredError') {
+            return res.status(401).json({
+                status: 'error',
+                message: 'Your JWT Token issued has expired'
+            });
+        }
+        next(error);
     }
-}
+};
+
+export const restrictTo = (...roles) => {
+    return (res, req, next) => {
+        if (!roles.includes(req.user.roles)) {
+            return res.status(403).json({
+                status: 'error',
+                message: 'You do not have permission to perform this action'
+            });
+        }
+        next();
+    }
+};
+
+export const forgotpassword = async (req, res, next) => {
+    try {
+        //get user based on post email 
+        const User = await User.findOne({ email: req.body.email.toLowerCase() });
+        if (!User) {
+            return res.status(200).json({
+                status: success,
+                message: 'If an account exsists u will receive a password reset email'
+            })
+        }
+        const resettoken = User.createPasswordResetToken();
+        await User.save({ validateBeforeSave: false });
+        const resetURL = `${req.protocol}://${req.get('host')}/api/v1/auth/reset-password/${resettoken}`;
+        try {
+            await sendEmail({
+                email: User.email,
+                subject: "Your password reset token (valid for 10 minutes)",
+                template: 'PasswordReset',
+                context: {
+                    name: User.username,
+                    resetURL,
+                    year: new Date().getFullYear()
+                }
+            });
+            res.status(201).json({
+                status: 'success',
+                message: 'Token sent on the email'
+            });
+        } catch (error) {
+            User.PasswordResetToken = undefined,
+                User.PasswordResetExpires = undefined,
+                await User.save({ validateBeforeSave: false });
+            return next(new Error('There was an error sending the email,try again'));
+        }
+    } catch (error) {
+        next(error);
+    }
+};
+
