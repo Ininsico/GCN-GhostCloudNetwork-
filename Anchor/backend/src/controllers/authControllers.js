@@ -96,84 +96,81 @@ export const signup = async (req, res, next) => {
     }
 };
 
-export const login = [
-    loginRateLimiter,
-    async (req, res, next) => {
-        try {
-            const { email, password, rememberMe } = req.body;
+export const login = async (req, res, next) => {
+    try {
+        const { email, password, rememberMe } = req.body;
 
-            // check if email and password exist
-            if (!email || !password) {
-                return res.status(400).json({
-                    status: 'error',
-                    message: 'Please provide email and password'
-                });
-            }
-
-            // find user
-            const user = await User.findByEmail(email.toLowerCase());
-
-            // check user and password
-            if (!user || !(await user.correctPassword(password, user.password))) {
-                // increment login attempts
-                if (user) {
-                    await user.incrementLoginAttempts();
-                }
-                return res.status(401).json({
-                    status: 'error',
-                    message: 'Incorrect email or password'
-                });
-            }
-
-            // check if account is locked
-            if (user.isLocked()) {
-                return res.status(423).json({
-                    status: 'error',
-                    message: 'Account is temporarily locked due to too many failed attempts. Please try again later.'
-                });
-            }
-
-            // check if email is verified
-            if (!user.emailVerified) {
-                return res.status(403).json({
-                    status: 'error',
-                    message: "Please verify your email before logging in."
-                });
-            }
-
-            // check if account is active
-            if (!user.isActive) {
-                return res.status(403).json({
-                    status: 'error',
-                    message: 'Your account has been deactivated. Please contact support.'
-                });
-            }
-
-            // reset login attempts on successful login
-            await User.updateOne(
-                { _id: user._id },
-                {
-                    $set: {
-                        loginAttempts: 0,
-                        lastLogin: new Date(),
-                    },
-                    $unset: {
-                        lockUntil: 1
-                    }
-                }
-            );
-
-            // Set JWT Expiration based on RememberMe
-            // Note: Changing process.env is bad practice as it affects global state. 
-            // Better to pass logic to signToken, but keeping simple for now or using default.
-            // if (rememberMe) { ... }
-
-            createSendToken(user, 200, req, res);
-        } catch (error) {
-            next(error);
+        // check if email and password exist
+        if (!email || !password) {
+            return res.status(400).json({
+                status: 'error',
+                message: 'Please provide email and password'
+            });
         }
+
+        // find user
+        const user = await User.findByEmail(email.toLowerCase());
+
+        // check user and password
+        if (!user || !(await user.correctPassword(password, user.password))) {
+            // increment login attempts
+            if (user) {
+                await user.incrementLoginAttempts();
+            }
+            return res.status(401).json({
+                status: 'error',
+                message: 'Incorrect email or password'
+            });
+        }
+
+        // check if account is locked
+        if (user.isLocked()) {
+            return res.status(423).json({
+                status: 'error',
+                message: 'Account is temporarily locked due to too many failed attempts. Please try again later.'
+            });
+        }
+
+        // check if email is verified
+        if (!user.emailVerified) {
+            return res.status(403).json({
+                status: 'error',
+                message: "Please verify your email before logging in."
+            });
+        }
+
+        // check if account is active
+        if (!user.isActive) {
+            return res.status(403).json({
+                status: 'error',
+                message: 'Your account has been deactivated. Please contact support.'
+            });
+        }
+
+        // reset login attempts on successful login
+        await User.updateOne(
+            { _id: user._id },
+            {
+                $set: {
+                    loginAttempts: 0,
+                    lastLogin: Date.now(),
+                },
+                $unset: {
+                    lockUntil: 1
+                }
+            }
+        );
+
+        // Set JWT Expiration based on RememberMe
+        // Note: Changing process.env is bad practice as it affects global state. 
+        // Better to pass logic to signToken, but keeping simple for now or using default.
+        // if (rememberMe) { ... }
+
+        createSendToken(user, 200, req, res);
+    } catch (error) {
+        next(error);
     }
-];
+};
 
 export const logout = (req, res) => {
     res.cookie('jwt', 'loggedout', {

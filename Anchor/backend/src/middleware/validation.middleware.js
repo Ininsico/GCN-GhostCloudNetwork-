@@ -1,52 +1,58 @@
-import { body, validationResult, params } from 'express-validator';
-import User from '../models/UserModel';
+import { body, validationResult, param } from 'express-validator';
+import User from '../models/UserModel.js';
+
 const checkemailexsits = async (email) => {
     const user = await User.findOne({ email: email.toLowerCase() });
-    return !user;
+    return !!user;
 };
+
 const checkusernameexsits = async (username) => {
     const user = await User.findOne({ username: username.toLowerCase() });
+    return !!user;
 };
-const checkpasswordstrength = async (password) => {
+
+const checkpasswordstrength = (password) => {
+    // At least one lowercase, one uppercase, one number, one special character, 8+ chars
     const strongRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
     return strongRegex.test(password);
 };
-//validation rules
+
+// Validation rules
 export const variables = {
     signup: [
         body('email')
             .trim()
             .normalizeEmail()
             .isEmail()
-            .withMessage("Please provide an email")
+            .withMessage("Please provide a valid email")
             .custom(async email => {
-                const exsits = await checkemailexsits(email);
-                if (!exsits) throw new Error('Email is already in use');
+                const exists = await checkemailexsits(email);
+                if (exists) throw new Error('Email is already in use');
                 return true;
             }),
         body('username')
             .trim()
-            .islength({ min: 3, max: 30 })
+            .isLength({ min: 3, max: 30 })
             .withMessage("Username must be between 3-30 characters")
             .matches(/^[a-zA-Z0-9_]+$/)
-            .withMessage("Username can only contain letters,numbers and underscores")
+            .withMessage("Username can only contain letters, numbers and underscores")
             .custom(async username => {
-                const exsits = await checkusernameexsits(username);
-                if (!exsits) throw new Error("Username is already taken");
+                const exists = await checkusernameexsits(username);
+                if (exists) throw new Error("Username is already taken");
                 return true;
             }),
         body('password')
-            .islength({ min: 8 })
-            .withMessage("Password must be atleast 6 characters long")
-            .custom(async password => {
+            .isLength({ min: 8 })
+            .withMessage("Password must be at least 8 characters long")
+            .custom(password => {
                 if (!checkpasswordstrength(password)) {
-                    throw new Error('password must contain at least one uppercase & Other relative security protocols')
+                    throw new Error('Password must contain at least one uppercase, lowercase, number and special character')
                 }
                 return true;
             }),
-        body('confirmpassword')
+        body('confirmPassword')
             .custom((value, { req }) => {
-                if (value != req.body.password) {
+                if (value !== req.body.password) {
                     throw new Error('Passwords do not match')
                 }
                 return true;
@@ -57,10 +63,10 @@ export const variables = {
             .trim()
             .normalizeEmail()
             .isEmail()
-            .withMessage("Please provide an valid email"),
+            .withMessage("Please provide a valid email"),
 
         body('password')
-            .notempty()
+            .notEmpty()
             .withMessage("Password is required")
     ],
     forgotpassword: [
@@ -71,15 +77,15 @@ export const variables = {
             .withMessage("Please provide a valid email")
     ],
     resetpassword: [
-        params('token')
-            .notempty()
+        param('token')
+            .notEmpty()
             .withMessage("Token is required"),
         body('password')
-            .islength({ min: 8 })
-            .withMessage("password must be atleast 8 characters long")
+            .isLength({ min: 8 })
+            .withMessage("Password must be at least 8 characters long")
             .custom(password => {
                 if (!checkpasswordstrength(password)) {
-                    throw new Error('Password must contain atleast 8 characters')
+                    throw new Error('Password must contain at least one uppercase, lowercase, number and special character')
                 }
                 return true;
             }),
@@ -93,25 +99,25 @@ export const variables = {
     ],
     updatepassword: [
         body('currentPassword')
-            .notempty()
+            .notEmpty()
             .withMessage('Current Password is required'),
 
         body('newPassword')
-            .islength({ min: 6 })
-            .withMessage("New password must be 6 characters long")
+            .isLength({ min: 8 })
+            .withMessage("New password must be at least 8 characters long")
             .custom((newPassword, { req }) => {
                 if (!checkpasswordstrength(newPassword)) {
-                    throw new Error('Password must be valid')
+                    throw new Error('Password must contain at least one uppercase, lowercase, number and special character')
                 }
                 if (newPassword === req.body.currentPassword) {
-                    throw new Error('New password must be different from last password')
+                    throw new Error('New password must be different from the old password')
                 }
                 return true;
             }),
-        body('confirmpassword')
+        body('confirmPassword') // Fixed casing for consistency
             .custom((value, { req }) => {
                 if (value !== req.body.newPassword) {
-                    throw new Error("Homie boye are u high on something,can u even write 2 words same?")
+                    throw new Error("Passwords do not match")
                 }
                 return true;
             })
@@ -122,26 +128,26 @@ export const variables = {
             .trim()
             .normalizeEmail()
             .isEmail()
-            .withMessage("Please homie boye please leave me alone"),
+            .withMessage("Please provide a valid email"),
         body('username')
             .optional()
             .trim()
-            .islength({ min: 3, max: 30 })
+            .isLength({ min: 3, max: 30 })
             .withMessage("Username must be between 3-30 characters")
             .matches(/^[a-zA-Z0-9_]+$/)
-            .withMessage("Username can only contain LETTERS,NUMBERS AND UNDERSCORES"),
+            .withMessage("Username can only contain letters, numbers and underscores"),
         body("firstName")
             .optional()
             .trim()
-            .islength({ min: 2, max: 50 })
-            .withMessage('First name can only be between 2-50 characters'),
+            .isLength({ min: 2, max: 50 })
+            .withMessage('First name must be between 2-50 characters'),
         body("lastName")
             .optional()
             .trim()
-            .islength({ min: 3, max: 50 })
-            .withMessage('last name must be between 2-50 charas')
+            .isLength({ min: 2, max: 50 })
+            .withMessage('Last name must be between 2-50 characters')
     ],
-    resendverfication: [
+    resendverification: [
         body('email')
             .trim()
             .normalizeEmail()
@@ -150,23 +156,24 @@ export const variables = {
     ]
 };
 
-//Middleware to handle validation errors
+// Middleware to handle validation errors
 export const handleValidationErrors = (req, res, next) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-        const formmatederrors = errors.array().map(err => ({
-            feild: err.path,
-            message: err.message
+        const formattedErrors = errors.array().map(err => ({
+            field: err.path || err.param,
+            message: err.msg
         }));
         return res.status(400).json({
             status: 'error',
             message: 'Validation failed',
-            errors: formmatederrors
+            errors: formattedErrors
         });
     }
     next();
 }
-//Apply validation middleware to routes
+
+// Apply validation middleware to routes
 export const validateMiddleware = (validateRules) => {
     return [
         ...validateRules,
