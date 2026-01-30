@@ -5,7 +5,6 @@ import { motion } from 'framer-motion';
 import {
     Cpu,
     Terminal,
-    Download,
     Plus,
     Activity,
     HardDrive,
