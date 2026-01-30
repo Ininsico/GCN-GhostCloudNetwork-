@@ -1,7 +1,4 @@
-
-import React from 'react';
-import { motion } from 'framer-motion';
-import { Gamepad2, Monitor, Wifi, Zap, Disc, Headphones, Keyboard, MousePointer2, Play } from 'lucide-react';
+import { Gamepad2, Wifi, Zap, Disc, Keyboard, MousePointer2, Play } from 'lucide-react';
 
 const CloudGaming = () => {
     return (

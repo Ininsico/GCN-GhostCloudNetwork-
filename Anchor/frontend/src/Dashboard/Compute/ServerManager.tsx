@@ -1,7 +1,7 @@
 
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Server, Smartphone, Globe, Lock, Plus, Terminal, Activity, Wifi, Cpu, HardDrive } from 'lucide-react';
+import { Server, Smartphone, Globe, Plus, Terminal, Activity, Wifi, Cpu, HardDrive } from 'lucide-react';
 
 const ServerManager = () => {
     const [activeView, setActiveView] = useState<'servers' | 'devices'>('servers');
