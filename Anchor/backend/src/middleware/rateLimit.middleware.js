@@ -1,6 +1,6 @@
 import rateLimit from 'express-rate-limit';
-import { RedisStore } from 'rate-limit-redis';
-import { redisClient } from '../config/redis.js';
+// import { RedisStore } from 'rate-limit-redis';
+// import { redisClient } from '../config/redis.js';
 
 export const rateLimiter = (maxRequests, windowMinutes) => {
     return rateLimit({
@@ -13,13 +13,11 @@ export const rateLimiter = (maxRequests, windowMinutes) => {
         standardHeaders: true,
         legacyHeaders: false,
         skipSuccessfulRequests: false,
-        keyGenerator: (req) => {
-            return req.ip;
-        },
-        // Store in redis for distributed systems
-        store: redisClient ? new RedisStore({
-            sendCommand: (...args) => redisClient.call(...args)
-        }) : undefined,
+
+        // Store in redis for distributed systems - REMOVED
+        // store: redisClient ? new RedisStore({
+        //     sendCommand: (...args) => redisClient.call(...args)
+        // }) : undefined,
         handler: (req, res, next, options) => {
             res.status(429).json({
                 status: 'error',
@@ -66,8 +64,8 @@ export const bruteforcelimiter = rateLimit({
         message: 'Too many failed attempts. Please try again after 15 minutes'
     },
     skipSuccessfulRequests: true,
-    keyGenerator: (req) => {
-        // Use ip + email for login attempts to prevent brute force on specific accounts
-        return `${req.ip}:${req.body.email || 'unknown'}`;
-    }
+    // keyGenerator: (req) => {
+    //     // Use ip + email for login attempts to prevent brute force on specific accounts
+    //     return `${req.ip}:${req.body.email || 'unknown'}`;
+    // }
 });
